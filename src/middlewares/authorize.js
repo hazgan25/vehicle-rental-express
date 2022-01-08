@@ -26,12 +26,13 @@ const checkTenant = (req, res, next) => {
 
 const checkUser = (req, res, next) => {
     const { roles_id } = req.userInfo;
-    if (roles_id !== 2) return res.status(401).json({ msg: "Error Data" });
+    if (roles_id !== 2) return res.status(401).json({ msg: "Anda Bukan User Biasa!" });
     next();
 }
 
 const logout = (req, res) => {
-    let refreshToken = refreshToken.filter(token => token !== req.body.token);
+    let refreshToken = [];
+    refreshToken.filter(token => token !== req.body.token);
     res.status(204).json({ msg: "Anda Berhasil Logout" });
 }
 

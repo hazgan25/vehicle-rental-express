@@ -27,10 +27,12 @@ const getUser = (req, res) => {
 
 // mengubah multi user
 const updateUser = (req, res) => {
-    const { body } = req;
+    let { body } = req;
     const { id } = req.userInfo;
+    const file = req.file;
+
     userModel
-        .updateUser(body, id)
+        .updateUser(body, id, file)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch(({ status, err }) => {

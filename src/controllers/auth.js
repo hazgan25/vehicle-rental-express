@@ -49,13 +49,9 @@ const login = (req, res) => {
         })
 }
 
-const logout = () => {
-
-}
 
 module.exports = {
     registerUser,
     registerAdmin,
     login,
-    logout,
 }

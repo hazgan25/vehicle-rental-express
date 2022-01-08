@@ -2,35 +2,45 @@ const mysql = require('mysql');
 const db = require('../database/db');
 const bcrypt = require('bcrypt');
 
-
-
 // menambahkan 1 user
 const postNewUser = (body) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `INSERT INTO users SET ?`;
-        bcrypt
-            .hash(body.password, 10)
-            .then((hashedPassword) => {
-                const bodyWithHashedPassword = {
-                    ...body,
-                    password: hashedPassword,
-                }
-                db.query(sqlQuery, [bodyWithHashedPassword], (err, result) => {
-                    if (err) reject({ status: 500, err });
-                    resolve({ status: 201, result });
+        const { email, password, name } = body;
+
+        const checkEmail = `SELECT * FROM users WHERE email = ?`;
+
+        db.query(checkEmail, [email], (err, result) => {
+            if (err) return reject({ status: 500, err });
+            if (email === '' || name === '' || password === '') return reject({ status: 401, err: "Need Name/email/Password" });
+            if (!email.includes('@gmail.com') && !email.includes('@yahoo.com')) return reject({ status: 401, err: "Invalid Email" }); //salah satu jika mail tidak sesuai
+            if (result.length > 0) return reject({ status: 401, err: "Email is Already" });
+
+            const sqlQuery = `INSERT INTO users SET ?`;
+            bcrypt
+                .hash(body.password, 10)
+                .then((hashedPassword) => {
+                    const bodyWithHashedPassword = {
+                        ...body,
+                        password: hashedPassword,
+                    }
+                    db.query(sqlQuery, [bodyWithHashedPassword], (err, result) => {
+                        if (err) reject({ status: 500, err });
+                        resolve({ status: 201, result });
+                    })
                 })
-            })
-            .catch((err) => {
-                reject({ status: 500, err });
-            })
+                .catch((err) => {
+                    reject({ status: 500, err });
+                })
+        })
     })
 }
 
 // melihat user multi
 const getUser = (query) => {
     return new Promise((resolve, reject) => {
-        let sqlQuery = `SELECT u.id, u.name AS "name", u.email,
-        g.name AS "genders", r.name AS "role" from users u
+        let sqlQuery = `SELECT u.id, u.name AS "name", u.display_name AS "display name"
+        , u.email, g.name AS "genders", u.image, 
+        r.name AS "role" from users u
         JOIN genders g ON u.gender_id = g.id
         JOIN roles r ON u.roles_id = r.id`;
         const statment = [];
@@ -125,23 +135,42 @@ const getUser = (query) => {
 }
 
 // update user PUT
-const updateUser = (body, id) => {
+const updateUser = (body, id, file) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `UPDATE users SET ? WHERE id = ${id}`;
-        bcrypt
-            .hash(body.password, 10)
-            .then((hashedPassword) => {
-                const bodyWithHashedPassword = {
-                    ...body,
-                    password: hashedPassword
-                }
-                db.query(sqlQuery, [bodyWithHashedPassword, id], (err, result) => {
-                    if (err) return reject({ status: 500, err });
-                    resolve({ status: 200, result });
+        const { email } = body;
+        const checkEmail = `SELECT * FROM users WHERE email = ?`;
+
+        db.query(checkEmail, [email], (err, result) => {
+            if (err) return reject({ status: 500, err });
+            if (
+                !email.includes('@gmail.com') &&
+                !email.includes('@yahoo.com') &&
+                !email.includes('@mail.com')
+            ) return reject({ status: 401, err: "Invalid Email" }); //salah satu jika mail tidak sesuai
+            if (result.length > 0) return reject({ status: 401, err: "Email is Already" });
+
+            const sqlQuery = `UPDATE users SET ? WHERE id = ${id}`;
+
+            bcrypt
+                .hash(body.password, 10)
+                .then((hashedPassword) => {
+
+                    let bodyWithHashedPassword
+
+                    if (file) bodyWithHashedPassword = { ...body, image: file.path, password: hashedPassword };
+                    if (!file) bodyWithHashedPassword = { ...body, password: hashedPassword };
+
+                    db.query(sqlQuery, [bodyWithHashedPassword, id], (err, result) => {
+                        if (err) return reject({ status: 500, err });
+
+                        resolve({ status: 200, result });
+                    })
                 })
-            })
+        })
     })
 }
+const pass = bcrypt.hashSync('owner2', 10);
+console.log(pass)
 
 // upgrade User to owner
 const upgradeUser = (id) => {

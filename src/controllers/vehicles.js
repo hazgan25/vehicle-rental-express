@@ -4,8 +4,11 @@ const responseHelper = require('../helpers/sendResponse');
 // menambahkan kendaraan baru
 const postNewVehicle = (req, res) => {
     const { body } = req;
+    const { id } = req.userInfo;
+    const file = req.file;
+
     vehicleModel
-        .postNewVehicle(body)
+        .postNewVehicle(body, id, file)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch((status, err) => {
@@ -25,9 +28,12 @@ const getVehicle = (req, res) => {
 }
 
 const updateVehicles = (req, res) => {
-    const { body } = req;
+    let { body } = req;
+    const { id } = req.userInfo;
+    const file = req.file;
+
     vehicleModel
-        .updateVehicles(body)
+        .updateVehicles(body, id, file)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch(({ status, err }) => {
@@ -38,9 +44,11 @@ const updateVehicles = (req, res) => {
 // menghapus data kendaraan byId
 const delVehicleById = (req, res) => {
     const { query } = req;
+    const { id } = req.userInfo;
+
     const idVehicle = query.id;
     vehicleModel
-        .delVehicleById(idVehicle)
+        .delVehicleById(idVehicle, id)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch(({ status, err }) => {

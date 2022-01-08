@@ -16,14 +16,13 @@ const getHistory = (query) => {
     return new Promise((resolve, reject) => {
         let sqlQuery = `SELECT h.id, u.name AS "users",
         g.name AS "gender", v.name AS "vehicle",
-        v.images, t.name AS "type", l.name AS "location",
-        v.price, h.date_time, h.rating
+        v.image, t.name AS "type", v.locations,
+        v.price, h.date_time AS "date", h.rating
         FROM historys h
         JOIN users u ON h.users_id = u.id
         JOIN genders g ON u.gender_id = g.id
         JOIN vehicles v ON h.vehicles_id = v.id
-        JOIN types t ON v.types_id = t.id
-        JOIN locations l ON v.locations_id = l.id`;
+        JOIN types t ON v.types_id = t.id`;
         const statment = [];
 
         // link sinkron ketika perubahaan query/value

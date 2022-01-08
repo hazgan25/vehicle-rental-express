@@ -1,9 +1,14 @@
 const mysql = require('mysql');
 const db = require('../database/db');
 
-const postNewVehicle = (body) => {
+const postNewVehicle = (body, id, file) => {
     return new Promise((resolve, reject) => {
         const sqlQuery = `INSERT INTO vehicles SET ?`;
+        body = {
+            ...body,
+            image: file.path,
+            user_id: id,
+        }
         db.query(sqlQuery, body, (err, result) => {
             if (err) return reject({ status: 500, err })
             resolve({ status: 200, result })
@@ -14,9 +19,10 @@ const postNewVehicle = (body) => {
 const getVehicle = (query) => {
     return new Promise((resolve, reject) => {
         let sqlQuery = `SELECT v.id, v.name AS "vehicle", v.locations,
-        t.name AS "types", v.price
+        t.name AS "types", v.image, v.price, u.name AS "owner"
         FROM vehicles v
-        JOIN types t ON v.types_id = t.id`;
+        JOIN types t ON v.types_id = t.id
+        JOIN users u ON v.user_id = u.id`;
         const statment = [];
 
         // searching
@@ -48,22 +54,44 @@ const getVehicle = (query) => {
 }
 
 // update vehicles PUT
-const updateVehicles = (body) => {
+const updateVehicles = (body, id, file) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `UPDATE vehicles SET ? WHERE id = ${body.id}`;
-        db.query(sqlQuery, body, (err, result) => {
+        const checkId = `SELECT * FROM vehicles WHERE id = ${body.id} AND user_id = ${id}`;
+        db.query(checkId, (err, result) => {
             if (err) return reject({ status: 500, err });
-            resolve({ status: 200, result });
+            if (result.length === 0) return reject({ status: 401, err: "Anda Bukan Pemilik Kendaraan Ini" });
+
+            const sqlQuery = `UPDATE vehicles SET ? WHERE id = ${body.id} AND user_id = ${id}`;
+            if (file) {
+                body = {
+                    ...body,
+                    image: file.path,
+                }
+            } else { body = { ...body } }
+
+            db.query(sqlQuery, body, (err, result) => {
+                if (err) return reject({ status: 500, err });
+                resolve({ status: 200, result });
+            })
         })
     })
 }
 
-const delVehicleById = (idVehicle) => {
+const delVehicleById = (idVehicle, id) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `DELETE FROM vehicles WHERE id = ${idVehicle}`;
-        db.query(sqlQuery, (err, result) => {
+
+        const checkId = `SELECT * FROM vehicles WHERE id = ${idVehicle} AND user_id = ${id}`;
+        db.query(checkId, (err, result) => {
             if (err) return reject({ status: 500, err });
-            resolve({ status: 200, result });
+            if (result.length === 0) return reject({ status: 401, err: "Anda Bukan Pemilik Kendaraan Ini" });
+            // console.log(result.length);
+
+            // console.log(id)
+            const sqlQuery = `DELETE FROM vehicles WHERE id = ${idVehicle} AND user_id = ${id}`;
+            db.query(sqlQuery, (err, result) => {
+                if (err) return reject({ status: 500, err });
+                resolve({ status: 200, result });
+            })
         })
     })
 }
