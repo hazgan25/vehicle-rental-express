@@ -134,6 +134,24 @@ const getUser = (query) => {
     });
 }
 
+// melihat sesuai ID yang sudah login/personal user
+const getPersonalUser = (id) => {
+    return new Promise((resolve, reject) => {
+        const sqlQuery = `SELECT name, display_name AS "display name", email, gender_id AS "genders", image FROM users where id = ${id}`;
+        id = {
+            name: id.name,
+            email: id.email,
+            image: id.image
+        }
+        db.query(sqlQuery, id, (err, result) => {
+            if (err) return reject({ status: 500, err });
+
+            resolve({ status: 200, result });
+
+        })
+    })
+}
+
 // update user PUT
 const updateUser = (body, id, file) => {
     return new Promise((resolve, reject) => {
@@ -169,8 +187,6 @@ const updateUser = (body, id, file) => {
         })
     })
 }
-const pass = bcrypt.hashSync('owner2', 10);
-console.log(pass)
 
 // upgrade User to owner
 const upgradeUser = (id) => {
@@ -199,6 +215,7 @@ const delUserById = (id) => {
 module.exports = {
     postNewUser,
     getUser,
+    getPersonalUser,
     updateUser,
     upgradeUser,
     delUserById

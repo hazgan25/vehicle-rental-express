@@ -25,6 +25,17 @@ const getUser = (req, res) => {
         })
 }
 
+const getPersonalUser = (req, res) => {
+    const { id } = req.userInfo;
+    userModel
+        .getPersonalUser(id)
+        .then(({ status, result }) => {
+            responseHelper.success(res, status, result);
+        }).catch(({ status, err }) => {
+            responseHelper.error(res, status, err);
+        })
+}
+
 // mengubah multi user
 const updateUser = (req, res) => {
     let { body } = req;
@@ -70,6 +81,7 @@ const delUserById = (req, res) => {
 module.exports = {
     postNewUser,
     getUser,
+    getPersonalUser,
     updateUser,
     upgradeUser,
     delUserById
