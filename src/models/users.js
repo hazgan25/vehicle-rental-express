@@ -137,17 +137,11 @@ const getUser = (query) => {
 // melihat sesuai ID yang sudah login/personal user
 const getPersonalUser = (id) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `SELECT name, display_name AS "display name", email, gender_id AS "genders", image FROM users where id = ${id}`;
-        id = {
-            name: id.name,
-            email: id.email,
-            image: id.image
-        }
+        const sqlQuery = `SELECT id, name, email, image, gender_id FROM users WHERE id = ?`;
+
         db.query(sqlQuery, id, (err, result) => {
             if (err) return reject({ status: 500, err });
-
             resolve({ status: 200, result });
-
         })
     })
 }
@@ -175,7 +169,7 @@ const updateUser = (body, id, file) => {
 
                     let bodyWithHashedPassword
 
-                    if (file) bodyWithHashedPassword = { ...body, image: file.path, password: hashedPassword };
+                    if (file) bodyWithHashedPassword = { ...body, image: file.filename, password: hashedPassword };
                     if (!file) bodyWithHashedPassword = { ...body, password: hashedPassword };
 
                     db.query(sqlQuery, [bodyWithHashedPassword, id], (err, result) => {

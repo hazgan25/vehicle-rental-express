@@ -82,15 +82,23 @@ const signIn = (body) => {
                     id: result[0].id,
                     name: result[0].name,
                     email: result[0].email,
+                    image: result[0].image,
                     roles_id: result[0].roles_id
                 }
                 const jwtOptions = {
-                    expiresIn: "5m",
+                    expiresIn: "20m",
                     issuer: process.env.ISSUER
                 }
                 jwt.sign(payload, process.env.SECRET_KEY, jwtOptions, (err, token) => {
+                    const { image } = result[0]
                     if (err) reject({ status: 500, err });
-                    resolve({ status: 200, result: { token } })
+                    resolve({
+                        status: 200, result: {
+                            email,
+                            image,
+                            token
+                        }
+                    })
                 })
             })
         })
