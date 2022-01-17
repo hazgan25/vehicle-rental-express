@@ -2,11 +2,16 @@ const mysql = require('mysql');
 const db = require('../database/db');
 
 // menambahkan data pembeli baru
-const postNewHistory = (body) => {
+const postNewHistory = (body, id) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `INSERT INTO historys SET ?`;
+        const sqlQuery = 'INSERT INTO historys SET ?'
+        body = {
+            ...body,
+            users_id: id
+        }
         db.query(sqlQuery, body, (err, result) => {
-            if (err || body.rating >= 5) return reject({ status: 500, err })
+            if (err) return reject({ status: 500, err })
+            if (body.rating > 5) reject({ status: 401, err: 'Maksimal 5' })
             resolve({ status: 200, result })
         })
     })
@@ -22,8 +27,9 @@ const getHistory = (query) => {
         JOIN users u ON h.users_id = u.id
         JOIN genders g ON u.gender_id = g.id
         JOIN vehicles v ON h.vehicles_id = v.id
-        JOIN types t ON v.types_id = t.id`;
-        const statment = [];
+        JOIN types t ON v.types_id = t.id`
+
+        const statment = []
 
         // link sinkron ketika perubahaan query/value
         let querySearch = '';
@@ -118,14 +124,32 @@ const getHistory = (query) => {
 
 const getPopularVehicle = (query) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `SELECT h.id, v.name AS "Vehicles", COUNT(v.name) AS "Rented",
-        ROUND((COUNT(v.name)/(SELECT COUNT(rating) FROM historys))*10,2) AS "rating"
+        let sqlQuery = `SELECT h.id, v.name AS "Vehicles", v.image as 'image',v.locations
+        ,u.name AS testimony,u.image AS 'profile', h.comment,
+        COUNT(v.name) AS "Rented",
+        ROUND((count(users_id)/(SELECT count(vehicles_id) FROM historys))*10,2) AS "rating"
         FROM historys h
         JOIN vehicles v ON h.vehicles_id = v.id
-        GROUP BY v.name ORDER BY rating DESC`;
-        db.query(sqlQuery, query, (err, result) => {
+        JOIN users u ON h.users_id = u.id
+        GROUP BY v.name ORDER BY rating DESC`
+
+        const statment = []
+
+
+        // limit and offset
+        // const page = parseInt(query.page);
+        const limit = parseInt(query.limit);
+        if (query.limit) {
+            sqlQuery += " Limit ?";
+            // const offset = (page - 1) * limit;
+            statment.push(limit);
+        }
+
+
+        db.query(sqlQuery, statment, (err, result) => {
             if (err) return reject({ status: 500, err });
             resolve({ status: 200, result });
+            console.log(result)
         })
     })
 }

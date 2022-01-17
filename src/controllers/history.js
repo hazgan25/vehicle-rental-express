@@ -3,9 +3,10 @@ const historyModel = require('../models/history');
 
 // menambahkan data pembeli baru
 const postNewHistory = (req, res) => {
-    const { body } = req;
+    const { body } = req
+    const { id } = req.userInfo
     historyModel
-        .postNewHistory(body)
+        .postNewHistory(body, id)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         })

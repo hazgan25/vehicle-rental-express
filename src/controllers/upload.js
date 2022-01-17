@@ -1,4 +1,4 @@
-const upload = require('../middlewares/upload');
+const upload = require('../middlewares/upload')
 
 const uploadHandleUsers = (req, res, next) => {
     upload.uploadProfile(req, res, (err) => {

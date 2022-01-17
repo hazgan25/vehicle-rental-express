@@ -29,5 +29,6 @@ server.use(express.urlencoded({
 }));
 server.use(express.json());
 server.use(logger);
-server.use(express.static("public/img"));
+server.use(express.static("public/img/users"))
+server.use(express.static('public/img/vehicles'))
 server.use(mainRouter);

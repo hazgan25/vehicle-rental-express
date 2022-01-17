@@ -18,7 +18,7 @@ const uploadProfile = multer({
             cb(null, false);
         }
     },
-    limits: { fileSize: 1 * 1024 * 524 } //1,5mb
+    limits: { fileSize: 1 * 1024 * 1724 } //1,7mb
 }).single('image')
 
 const uploadVehicle = multer({
@@ -38,7 +38,7 @@ const uploadVehicle = multer({
             cb(null, false);
         }
     },
-    limits: { fileSize: 1 * 1024 * 524 } //1,5mb
+    limits: { fileSize: 1 * 1024 * 1724 } //1,7mb
 }).single('image')
 
 module.exports = { uploadProfile, uploadVehicle }
