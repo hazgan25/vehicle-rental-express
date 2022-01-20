@@ -4,16 +4,18 @@ const db = require('../database/db')
 
 const createNewUser = (body) => {
     return new Promise((resolve, reject) => {
-        const { email, password, name } = body;
+        const { email, password, name } = body
         const checkEmail = `SELECT * FROM users WHERE email = ?`
 
         db.query(checkEmail, [email], (err, result) => {
-            if (err) return reject({ status: 500, err });
-            if (email === '' || name === '' || password === '') return reject({ status: 401, err: "Need Name/email/Password" });
-            if (!email.includes('@gmail.com') && !email.includes('@yahoo.com') && !email.includes('@mail.com')) return reject({ status: 401, err: "Invalid Email" }); //salah satu jika mail tidak sesuai
+            if (err) return reject({ status: 500, err })
+
+            if (email === '' || name === '' || password === '') return reject({ status: 401, err: "Need Name/email/Password" })
+            if (!email.includes('@gmail.com') && !email.includes('@yahoo.com') && !email.includes('@mail.com')) return reject({ status: 401, err: "Invalid Email" }) //salah satu jika mail tidak sesuai
             if (result.length > 0) return reject({ status: 401, err: "Email is Already" })
 
-            const sqlQuery = `INSERT INTO users SET ?`;
+            const sqlQuery = `INSERT INTO users SET ?`
+
             bcrypt
                 .hash(password, 10)
                 .then((hashedPassword) => {
@@ -30,6 +32,7 @@ const createNewUser = (body) => {
                 .catch((err) => {
                     reject({ status: 500, err })
                 })
+
         })
     })
 }
