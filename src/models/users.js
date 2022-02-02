@@ -1,6 +1,6 @@
-const mysql = require('mysql');
-const db = require('../database/db');
-const bcrypt = require('bcrypt');
+const mysql = require('mysql')
+const db = require('../database/db')
+const bcrypt = require('bcrypt')
 
 // menambahkan 1 user
 const postNewUser = (body) => {
@@ -153,7 +153,7 @@ const updateUser = (body, id, file) => {
         const checkEmail = `SELECT * FROM users WHERE email = ?`;
 
         db.query(checkEmail, [email], (err, result) => {
-            if (err) return reject({ status: 500, err });
+            if (err) return reject({ status: 500, err })
             if (
                 !email.includes('@gmail.com') &&
                 !email.includes('@yahoo.com') &&
@@ -173,9 +173,9 @@ const updateUser = (body, id, file) => {
                     if (!file) bodyWithHashedPassword = { ...body, password: hashedPassword };
 
                     db.query(sqlQuery, [bodyWithHashedPassword, id], (err, result) => {
-                        if (err) return reject({ status: 500, err });
+                        if (err) return reject({ status: 500, err })
 
-                        resolve({ status: 200, result });
+                        resolve({ status: 200, result })
                     })
                 })
         })
@@ -198,8 +198,8 @@ const delUserById = (id) => {
     return new Promise((resolve, reject) => {
         const sqlQuery = `DELETE FROM users WHERE id = ${id}`;
         db.query(sqlQuery, (err, result) => {
-            if (err) return reject({ status: 500, err });
-            resolve({ status: 200, result });
+            if (err) return reject({ status: 500, err })
+            resolve({ status: 200, result })
         })
     })
 }

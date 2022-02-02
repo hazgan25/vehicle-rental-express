@@ -34,7 +34,7 @@ const editProfile = (req, res, next) => {
     next();
 }
 
-const editVehicle = (req, res, next) => {
+const vehicle = (req, res, next) => {
     const { body } = req;
     const editVehicle = ['name', 'locations', 'types_id', 'image', 'price', 'date_time'];
     const bodyProperty = Object.keys(body);
@@ -49,6 +49,6 @@ const editVehicle = (req, res, next) => {
 module.exports = {
     register,
     editProfile,
-    editVehicle,
+    vehicle,
     login
 }

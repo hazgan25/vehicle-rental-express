@@ -1,18 +1,13 @@
-const authModel = require('../models/auth');
-const responseHelprer = require('../helpers/sendResponse');
+const authModel = require('../models/auth')
+const responseHelprer = require('../helpers/sendResponse')
 
 // buat akun khusus user
-const registerUser = (req, res) => {
+const register = (req, res) => {
     const { body } = req;
     authModel
-        .createNewUser(body)
+        .create(body)
         .then(({ status, result }) => {
-            const objectResponse = {
-                id: result.insertId,
-                name: body.name,
-                email: body.email,
-            };
-            responseHelprer.success(res, status, objectResponse);
+            responseHelprer.success(res, status, result);
         })
         .catch(({ status, err }) => {
             responseHelprer.error(res, status, err);
@@ -25,12 +20,7 @@ const registerAdmin = (req, res) => {
     authModel
         .createNewAdmin(body)
         .then(({ status, result }) => {
-            const objectResponse = {
-                id: result.insertId,
-                name: body.name,
-                email: body.email,
-            };
-            responseHelprer.success(res, status, objectResponse);
+            responseHelprer.success(res, status, result);
         })
         .catch(({ status, err }) => {
             responseHelprer.error(res, status, err);
@@ -49,9 +39,22 @@ const login = (req, res) => {
         })
 }
 
+const logout = (req, res) => {
+    const token = req.header('x-access-token')
+    const { id } = req.userInfo
+    authModel
+        .exit(token, id)
+        .then(({ status, result }) => {
+            responseHelprer.success(res, status, result)
+        })
+        .catch(({ status, err }) => {
+            responseHelprer.error(res, status, err)
+        })
+}
 
 module.exports = {
-    registerUser,
+    register,
     registerAdmin,
     login,
+    logout
 }

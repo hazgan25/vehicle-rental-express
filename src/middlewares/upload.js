@@ -39,6 +39,6 @@ const uploadVehicle = multer({
         }
     },
     limits: { fileSize: 1 * 1024 * 1724 } //1,7mb
-}).single('image')
+}).array('image', 3)
 
 module.exports = { uploadProfile, uploadVehicle }

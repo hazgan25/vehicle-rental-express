@@ -3,7 +3,7 @@ const responseHelper = require('../helpers/sendResponse');
 
 // menambahkan kendaraan baru
 const postNewVehicle = (req, res) => {
-    const { body } = req;
+    let { body } = req;
     const { id } = req.userInfo;
     const file = req.file;
 

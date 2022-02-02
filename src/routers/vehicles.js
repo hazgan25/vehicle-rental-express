@@ -3,6 +3,8 @@ const vehicleRouter = express.Router();
 const vehicleController = require('../controllers/vehicles');
 const authorize = require('../middlewares/authorize');
 const upload = require('../controllers/upload');
+// const validate = require('../middlewares/validate')
+
 
 vehicleRouter.post('/', authorize.checkToken, authorize.checkTenant, upload.uploadHandlerVehicles, vehicleController.postNewVehicle);
 vehicleRouter.get('/', vehicleController.getVehicle);

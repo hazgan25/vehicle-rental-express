@@ -1,13 +1,13 @@
 const express = require('express');
 const authRouter = express.Router();
 const authController = require('../controllers/auth');
-const validate = require('../middlewares/validate');
-const authorize = require('../middlewares/authorize')
+const { register } = require('../middlewares/validate')
+const { checkToken } = require('../middlewares/authorize')
 
 // router auth
-authRouter.post('/user', validate.register, authController.registerUser); //register sebagai users
-authRouter.post('/admin', validate.register, authController.registerAdmin); //register admin
+authRouter.post('/register', register, authController.register) //register sebagai users
+authRouter.post('/register/admin', register, authController.registerAdmin) //register admin
 authRouter.post('/login', authController.login);
-authRouter.delete('/logout', authorize.logout);
+authRouter.delete('/logout', checkToken, authController.logout)
 
 module.exports = authRouter;
