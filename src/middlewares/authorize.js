@@ -30,7 +30,7 @@ const checkUser = (req, res, next) => {
     next()
 }
 
-const checkTenant = (req, res, next) => {
+const checkRenter = (req, res, next) => {
     const { roles_id } = req.userInfo
     if (roles_id !== 3) return res.status(401).json({ msg: "Must Be a Renter First (-_-)" })
     next()
@@ -39,6 +39,6 @@ const checkTenant = (req, res, next) => {
 module.exports = {
     checkToken,
     checkAdmin,
-    checkTenant,
+    checkRenter,
     checkUser,
 }

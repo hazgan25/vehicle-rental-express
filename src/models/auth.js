@@ -92,6 +92,8 @@ const signIn = (body) => {
 
                 const payload = {
                     id: result[0].id,
+                    name: result[0].name,
+                    email: result[0].email,
                     image: result[0].image,
                     role_id: result[0].role
                 }

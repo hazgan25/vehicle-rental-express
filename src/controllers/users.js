@@ -1,12 +1,10 @@
 const userModel = require("../models/users");
 const responseHelper = require('../helpers/sendResponse');
 
-
-// menambahkan user
-const postNewUser = (req, res) => {
-    const { body } = req;
+const detailPersonal = (req, res) => {
+    const { id } = req.userInfo
     userModel
-        .postNewUser(body)
+        .userDataPersonal(id)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch(({ status, err }) => {
@@ -14,36 +12,12 @@ const postNewUser = (req, res) => {
         })
 }
 
-const getUser = (req, res) => {
-    const { query } = req;
+const editUser = (req, res) => {
+    const { body } = req
+    const { userInfo } = req
+    const file = req.file
     userModel
-        .getUser(query)
-        .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
-        }).catch(({ status, err }) => {
-            responseHelper.error(res, status, err);
-        })
-}
-
-const getPersonalUser = (req, res) => {
-    const { id } = req.userInfo;
-    userModel
-        .getPersonalUser(id)
-        .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
-        }).catch(({ status, err }) => {
-            responseHelper.error(res, status, err);
-        })
-}
-
-// mengubah multi user
-const updateUser = (req, res) => {
-    let { body } = req;
-    const { id } = req.userInfo;
-    const file = req.file;
-
-    userModel
-        .updateUser(body, id, file)
+        .editUserData(userInfo, body, file)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch(({ status, err }) => {
@@ -51,11 +25,11 @@ const updateUser = (req, res) => {
         })
 }
 
-// upgrade Users role 3
-const upgradeUser = (req, res) => {
-    const { id } = req.userInfo;
+const editPassword = (req, res) => {
+    const { body } = req
+    const { id } = req.userInfo
     userModel
-        .upgradeUser(id)
+        .editPasswordData(id, body)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch(({ status, err }) => {
@@ -63,26 +37,21 @@ const upgradeUser = (req, res) => {
         })
 }
 
-
-// menghapus akun
-const delUserById = (req, res) => {
-    const { id } = req.userInfo;
+const deleteAccount = (req, res) => {
+    const { id } = req.userInfo
+    const token = req.header('x-access-token')
     userModel
-        .delUserById(id)
+        .deleteAccountUser(id, token)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch(({ status, err }) => {
-            responseHelper.error(res, status, err);
-        });
+            responseHelper.success(res, status, err);
+        })
 }
-
-
 
 module.exports = {
-    postNewUser,
-    getUser,
-    getPersonalUser,
-    updateUser,
-    upgradeUser,
-    delUserById
-};
+    detailPersonal,
+    editUser,
+    editPassword,
+    deleteAccount
+}

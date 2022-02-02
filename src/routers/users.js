@@ -1,15 +1,12 @@
 const express = require('express');
 const userRouter = express.Router();
-const userController = require('../controllers/users');
-const authorize = require('../middlewares/authorize');
-const upload = require('../controllers/upload');
+const userController = require('../controllers/users')
+const { checkToken } = require('../middlewares/authorize')
+const { uploadHandleUsers } = require('../controllers/upload')
 
-// post/insert
-userRouter.post('/', authorize.checkToken, authorize.checkAdmin, userController.postNewUser);
-userRouter.get('/', authorize.checkToken, authorize.checkAdmin, userController.getUser);
-userRouter.get('/profile', authorize.checkToken, userController.getPersonalUser);
-userRouter.put('/', authorize.checkToken, upload.uploadHandleUsers, userController.updateUser);
-userRouter.patch('/', authorize.checkToken, authorize.checkUser, userController.upgradeUser);
-userRouter.delete('/', authorize.checkToken, userController.delUserById);
+userRouter.get('/profile', checkToken, userController.detailPersonal)
+userRouter.patch('/edit', checkToken, uploadHandleUsers, userController.editUser)
+userRouter.put('/edit/password', checkToken, userController.editPassword)
+userRouter.delete('/delete', checkToken, userController.deleteAccount)
 
-module.exports = userRouter;
+module.exports = userRouter
