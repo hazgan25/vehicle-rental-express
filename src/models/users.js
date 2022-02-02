@@ -21,8 +21,11 @@ const userDataPersonal = (id) => {
 
 const editUserData = (userInfo, body, file) => {
     return new Promise((resolve, reject) => {
-        const { email } = body
+        const { email, dob } = body
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
+        const datePattern = /^([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)\d{4}$/
+
+        const formatDate = dob.split('/').reverse().join('/')
         const checkEmail = `SELECT * FROM users WHERE email = ?`
 
         db.query(checkEmail, [email], (err, result) => {
@@ -31,8 +34,10 @@ const editUserData = (userInfo, body, file) => {
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
 
             const sqlQuery = `UPDATE users SET ? WHERE id = ${userInfo.id}`
-            if (file) body = { ...body, image: `${process.env.IMAGE_HOST}${file.filename}` }
-            if (!file) body = { ...body }
+            if (file) body = { ...body, dob: formatDate, image: `${process.env.IMAGE_HOST}${file.filename}` }
+            if (!file) body = { ...body, dob: formatDate }
+
+            if (!datePattern.test(dob)) return reject({ status: 401, err: 'Format Date Invalid' })
 
             db.query(sqlQuery, [body], (err, result) => {
                 if (err) return reject({ status: 500, err })
