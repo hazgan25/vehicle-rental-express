@@ -23,6 +23,7 @@ const create = (body) => {
                     const bodyWithHashedPassword = {
                         ...body,
                         password: hashedPassword,
+                        active_year: new Date().getFullYear(),
                         roles_id: 2
                     }
 
@@ -58,6 +59,7 @@ const createNewAdmin = (body) => {
                     const bodyWithHashedPassword = {
                         ...body,
                         password: hashedPassword,
+                        active_year: new Date().getFullYear(),
                         roles_id: 1
                     }
 
