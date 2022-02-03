@@ -1,14 +1,14 @@
-const userModel = require("../models/users");
-const responseHelper = require('../helpers/sendResponse');
+const userModel = require('../models/users')
+const responseHelper = require('../helpers/sendResponse')
 
 const detailPersonal = (req, res) => {
     const { id } = req.userInfo
     userModel
         .userDataPersonal(id)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.error(res, status, err);
+            responseHelper.error(res, status, err)
         })
 }
 

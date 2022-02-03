@@ -1,6 +1,6 @@
+const db = require('../database/db')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const db = require('../database/db')
 
 const create = (body) => {
     return new Promise((resolve, reject) => {
@@ -95,7 +95,7 @@ const signIn = (body) => {
                     name: result[0].name,
                     email: result[0].email,
                     image: result[0].image,
-                    role_id: result[0].role
+                    roles_id: result[0].roles_id
                 }
                 const jwtOptions = {
                     expiresIn: '10h',
