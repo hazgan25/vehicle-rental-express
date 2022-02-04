@@ -104,11 +104,6 @@ const detailAllUserData = (query) => {
             // jika ada tiga key
             if (bySearch && byFilter && byOrderBy) linkResult = `${links}${link1}&${link2}&${link3}`
 
-            // kosongkan link jika tidak ada query yang dimasukan
-            // if (query.name == undefined || query.email == undefined) {
-            //     querySearch = ''
-            // }
-
             let linkNext = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page + 1}`
             let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
 
@@ -166,7 +161,66 @@ const create = (body) => {
     })
 }
 
+const editPasswordUser = (body, userInfo) => {
+    return new Promise((resolve, reject) => {
+        const { id, password } = body
+
+        const checkUser = `SELECT * from users WHERE id = ?`
+
+        db.query(checkUser, [id], (err, result) => {
+            if (err) return reject({ status: 500, err })
+            const { roles_id } = result[0]
+
+            if (roles_id == 1 && userInfo.id !== result[0].id) return reject({ status: 401, err: `can't change password between admins` })
+
+            const sqlQuery = 'UPDATE users SET ? WHERE id = ?'
+            bcrypt
+                .hash(password, 10)
+                .then((hashedPassword) => {
+                    const bodyWithHashedPassword = {
+                        password: hashedPassword,
+                    }
+
+                    db.query(sqlQuery, [bodyWithHashedPassword, id], (err, result) => {
+                        if (err) return reject({ status: 500, err })
+
+                        if (bodyWithHashedPassword.password == '' || bodyWithHashedPassword.id == '') return reject({ status: 401, err: 'Must be filled' })
+
+                        result = { msg: 'Change Password is Success' }
+                        resolve({ status: 200, result })
+                    })
+                })
+                .catch((err) => {
+                    reject({ status: 500, err })
+                })
+        })
+    })
+}
+
+const deleteUserAccount = (body, userInfo) => {
+    return new Promise((resolve, reject) => {
+        const { id } = body
+        const checkUser = `SELECT * FROM users WHERE id = ?`
+
+        db.query(checkUser, [id], (err, result) => {
+            if (err) return reject({ status: 500, err })
+            const { roles_id } = result[0]
+            if (roles_id == 1 && userInfo.id !== result[0].id) return reject({ status: 401, err: `can't delete account between admins` })
+
+            const sqlQuery = `DELETE FROM users WHERE id = ?`
+            db.query(sqlQuery, [id], (err, result) => {
+                if (err) return reject({ status: 500, err })
+
+                result = { msg: 'You have successfully deleted users account' }
+                resolve({ status: 200, result })
+            })
+        })
+    })
+}
+
 module.exports = {
     detailAllUserData,
-    create
+    create,
+    editPasswordUser,
+    deleteUserAccount
 }

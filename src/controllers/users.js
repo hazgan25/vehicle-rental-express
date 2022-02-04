@@ -37,6 +37,18 @@ const editPassword = (req, res) => {
         })
 }
 
+// upgrade user to role 3
+const upgradeUser = (req, res) => {
+    const { id } = req.userInfo
+    userModel
+        .upgradeUsertoRenter(id)
+        .then(({ status, result }) => {
+            responseHelper.success(res, status, result);
+        }).catch(({ status, err }) => {
+            responseHelper.success(res, status, err);
+        })
+}
+
 const deleteAccount = (req, res) => {
     const { id } = req.userInfo
     const token = req.header('x-access-token')
@@ -53,5 +65,6 @@ module.exports = {
     detailPersonal,
     editUser,
     editPassword,
+    upgradeUser,
     deleteAccount
 }

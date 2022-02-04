@@ -58,7 +58,7 @@ const editPasswordData = (id, body) => {
 
             bcrypt.compare(currentPass, result[0].password, (err, isValid) => {
                 if (err) return reject({ status: 500, err })
-                if (!isValid && currentPass !== '' && newPass !== '') return reject({ status: 401, err: 'Curent Password is wrong' })
+                if (!isValid && currentPass !== '' && newPass !== '') return reject({ status: 401, err: 'Current Password is wrong' })
 
                 bcrypt.hash(newPass, 10)
                     .then((hashedPassword) => {
@@ -76,6 +76,19 @@ const editPasswordData = (id, body) => {
                         reject({ status: 500, err })
                     })
             })
+        })
+    })
+}
+
+const upgradeUsertoRenter = (id) => {
+    return new Promise((resolve, reject) => {
+        const sqlQuery = `UPDATE users SET roles_id = 3 WHERE id = ?`
+
+        db.query(sqlQuery, [id], (err, result) => {
+            if (err) return reject({ status: 500, err })
+
+            result = { msg: 'success upgrade account to renter' }
+            resolve({ status: 200, result })
         })
     })
 }
@@ -103,5 +116,6 @@ module.exports = {
     userDataPersonal,
     editUserData,
     editPasswordData,
+    upgradeUsertoRenter,
     deleteAccountUser
 }
