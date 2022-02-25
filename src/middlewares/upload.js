@@ -40,5 +40,6 @@ const uploadVehicle = multer({
     },
     limits: { fileSize: 1 * 1024 * 1724 } //1,7mb
 }).array('image', 3)
+// cek array
 
 module.exports = { uploadProfile, uploadVehicle }
