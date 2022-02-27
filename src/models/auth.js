@@ -102,8 +102,9 @@ const signIn = (body) => {
                     issuer: process.env.ISSUER
                 }
                 jwt.sign(payload, process.env.SECRET_KEY, jwtOptions, (err, token) => {
+                    const { id } = result[0]
                     if (err) reject({ status: 500, err })
-                    resolve({ status: 200, result: { token, msg: 'login successful' } })
+                    resolve({ status: 200, result: { id, token, msg: 'login successful' } })
                 })
             })
         })
