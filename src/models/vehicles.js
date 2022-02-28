@@ -6,7 +6,7 @@ const postNewVehicle = (body, id, file) => {
         const sqlQuery = `INSERT INTO vehicles SET ?`;
         body = {
             ...body,
-            image: file.filename,
+            image: `${process.env.URL_HOST}/${file.filename}`,
             user_id: id,
         }
         db.query(sqlQuery, body, (err, result) => {

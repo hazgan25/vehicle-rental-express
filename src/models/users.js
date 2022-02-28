@@ -35,6 +35,7 @@ const editUserData = (userInfo, body, file) => {
 
             const sqlQuery = `UPDATE users SET ? WHERE id = ${userInfo.id}`
             if (file) body = { ...body, dob: formatDate, image: `${process.env.URL_HOST}/${file.filename}` }
+
             if (!file) body = { ...body, dob: formatDate }
 
             if (!datePattern.test(dob)) return reject({ status: 401, err: 'Format Date Invalid' })
