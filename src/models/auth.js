@@ -4,13 +4,13 @@ const jwt = require('jsonwebtoken')
 
 const create = (body) => {
     return new Promise((resolve, reject) => {
-        const { name, email, password } = body
+        const { phone, email, password } = body
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
         const checkEmail = `SELECT * FROM users WHERE email = ?`
 
         db.query(checkEmail, [email], (err, result) => {
             if (err) return reject({ status: 500, err })
-            if (name === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input name, email, And password' })
+            if (phone === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input phone, email, And password' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
             if (result.length > 0) return reject({ status: 401, err: "Email is Already" })
 
@@ -39,13 +39,13 @@ const create = (body) => {
 
 const createNewAdmin = (body) => {
     return new Promise((resolve, reject) => {
-        const { name, email, password } = body
+        const { phone, email, password } = body
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
         const checkEmail = `SELECT * FROM users WHERE email = ?`
 
         db.query(checkEmail, [email], (err, result) => {
             if (err) return reject({ status: 500, err })
-            if (name === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input name, email, And password' })
+            if (phone === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input phone, email, And password' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
             if (result.length > 0) return reject({ status: 401, err: "Email is Already" })
 
