@@ -3,7 +3,7 @@ const responseHelprer = require('../helpers/sendResponse');
 
 const register = (req, res, next) => {
     const { body } = req;
-    const registerBody = ['[phone]', 'email', 'password'];
+    const registerBody = ['phone', 'email', 'password'];
     const bodyProperty = Object.keys(body);
     const isBodyValid =
         registerBody.filter((property) => !bodyProperty.includes(property))
