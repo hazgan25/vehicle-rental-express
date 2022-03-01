@@ -67,14 +67,14 @@ const detailAllUserData = (query) => {
         const limit = parseInt(query.limit)
         if (query.limit) {
             queryLimit = 'limit'
-            sqlQuery += 'LIMIT ?'
+            sqlQuery += 'LIMIT ? '
             statment.push(limit)
         }
         if (query.page && query.limit) {
             queryLimit = 'limit'
             queryPage = 'page'
 
-            sqlQuery += 'LIMIT ? OFFSET ?'
+            sqlQuery += 'OFFSET ?'
             const offset = (page - 1) * limit
             statment.push(limit, offset)
         }
