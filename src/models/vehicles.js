@@ -1,13 +1,23 @@
 const mysql = require('mysql');
 const db = require('../database/db');
 
-const postNewVehicle = (body, id, file) => {
+const postNewVehicle = (body, files, id) => {
     return new Promise((resolve, reject) => {
         const sqlQuery = `INSERT INTO vehicles SET ?`;
-        body = {
-            ...body,
-            image: `${process.env.URL_HOST}/${file.filename}`,
-            user_id: id,
+        if (files) {
+            const filesArr = []
+            for (let i = 0; i < files.length; i++) {
+                filesArr.push(`${process.env.URL_HOST}/${files[i].filename}`)
+            }
+            let imgVahehicle = JSON.stringify(filesArr)
+            body = {
+                ...body,
+                images: imgVahehicle,
+                user_id: id
+            }
+
+        } else {
+            body = { ...body, user_id: id }
         }
         db.query(sqlQuery, body, (err, result) => {
             if (err) return reject({ status: 500, err })
@@ -19,7 +29,7 @@ const postNewVehicle = (body, id, file) => {
 const getVehicle = (query) => {
     return new Promise((resolve, reject) => {
         let sqlQuery = `SELECT v.id, v.name AS "vehicle", v.locations,
-        t.name AS "types", v.image, v.price, u.name AS "owner"
+        t.name AS "types", v.images, v.price, u.name AS "owner"
         FROM vehicles v
         JOIN types t ON v.types_id = t.id
         JOIN users u ON v.user_id = u.id`;
@@ -54,7 +64,7 @@ const getVehicle = (query) => {
 }
 
 // update vehicles PUT
-const updateVehicles = (body, id, file) => {
+const updateVehicles = (body, id, files) => {
     return new Promise((resolve, reject) => {
         const checkId = `SELECT * FROM vehicles WHERE id = ${body.id} AND user_id = ${id}`;
         db.query(checkId, (err, result) => {
@@ -62,15 +72,27 @@ const updateVehicles = (body, id, file) => {
             if (result.length === 0) return reject({ status: 401, err: "Anda Bukan Pemilik Kendaraan Ini" });
 
             const sqlQuery = `UPDATE vehicles SET ? WHERE id = ${body.id} AND user_id = ${id}`;
-            if (file) {
+            if (files) {
+                const filesArr = []
+                for (let i = 0; i < files.length; i++) {
+                    filesArr.push(`${process.env.URL_HOST}/${files[i].filename}`)
+                }
+                let imgVahehicle = JSON.stringify(filesArr)
                 body = {
                     ...body,
-                    image: file.path,
+                    images: imgVahehicle,
                 }
-            } else { body = { ...body } }
+
+            } else {
+                body = { ...body }
+            }
 
             db.query(sqlQuery, body, (err, result) => {
                 if (err) return reject({ status: 500, err });
+                result = {
+                    ...result,
+                    body
+                }
                 resolve({ status: 200, result });
             })
         })

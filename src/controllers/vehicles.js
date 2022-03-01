@@ -3,12 +3,10 @@ const responseHelper = require('../helpers/sendResponse');
 
 // menambahkan kendaraan baru
 const postNewVehicle = (req, res) => {
-    let { body } = req;
-    const { id } = req.userInfo;
-    const file = req.file;
-
+    let { body, userInfo, files } = req
+    const { id } = userInfo
     vehicleModel
-        .postNewVehicle(body, id, file)
+        .postNewVehicle(body, files, id)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch((status, err) => {
@@ -28,12 +26,10 @@ const getVehicle = (req, res) => {
 }
 
 const updateVehicles = (req, res) => {
-    let { body } = req;
-    const { id } = req.userInfo;
-    const file = req.file;
-
+    let { body, userInfo, files } = req;
+    const { id } = userInfo
     vehicleModel
-        .updateVehicles(body, id, file)
+        .updateVehicles(body, id, files)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch(({ status, err }) => {

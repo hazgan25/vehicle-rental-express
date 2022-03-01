@@ -10,7 +10,7 @@ const uploadProfile = multer({
             cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`)
         }
     }),
-    filename: (req, file, cb) => {
+    fileFilter: (req, file, cb) => {
         if (file.mimetype === "image/jpg" || file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
             cb(null, true);
         }
@@ -30,7 +30,7 @@ const uploadVehicle = multer({
             cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`)
         }
     }),
-    filename: (req, file, cb) => {
+    fileFilter: (req, file, cb) => {
         if (file.mimetype === "image/jpg" || file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
             cb(null, true);
         }
@@ -39,7 +39,7 @@ const uploadVehicle = multer({
         }
     },
     limits: { fileSize: 1 * 1024 * 1724 } //1,7mb
-}).array('image', 3)
+}).array('images', 3)
 // cek array
 
 module.exports = { uploadProfile, uploadVehicle }

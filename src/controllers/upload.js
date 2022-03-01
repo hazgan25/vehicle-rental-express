@@ -5,6 +5,8 @@ const uploadHandleUsers = (req, res, next) => {
         if (err && err.code === "LIMIT_FILE_SIZE") {
             return res.status(400).json({ msg: "Ukuran file melebihi batas" })
         } else if (err) {
+            const { body } = req
+            console.log(body)
             return res.status(401).json({ msg: "Just JPG, PNG, JPEG formated" })
         }
         next();
@@ -16,6 +18,7 @@ const uploadHandlerVehicles = (req, res, next) => {
         if (err && err.code === "LIMIT_FILE_SIZE") {
             return res.status(400).json({ msg: "Ukuran file melebihi batas" })
         } else if (err) {
+            console.log(err)
             return res.status(401).json({ msg: "Just JPG, PNG, JPEG formated" })
         }
         next();
