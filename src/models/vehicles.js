@@ -35,14 +35,40 @@ const getVehicle = (query) => {
         JOIN users u ON v.user_id = u.id`;
         const statment = [];
 
+        let querySearch = ''
+        let queryKeyword = ''
+        let queryFilter = ''
+        let queryLimit = ''
+        let queryPage = ''
+        let queryBy = ''
+        let queryOrder = ''
+
         // searching
         let keyword = "%%";
-        if (query.name) keyword = `%${query.name}%`, sqlQuery += ` WHERE v.name LIKE "${keyword}"`;
+        if (query.name) {
+            keyword = `%${query.name}%`
+            sqlQuery += ` WHERE v.name LIKE "${keyword}"`
+            querySearch = 'name'
+        }
+        if (query.location) {
+            keyword = `%${query.location}%`
+            sqlQuery += ` WHERE v.location LIKE "${keyword}"`
+            querySearch = 'name'
+        }
 
         // filter
         let filter = '';
-        if (query.location) filter = `${query.location}`, sqlQuery += ` AND  v.locations = "${filter}"`;
-        if (query.type) filter = `${query.type}`, sqlQuery += ` AND t.id = "${filter}"`;
+        // if (query.location) {
+        //     filter = `${query.location}`
+        //     sqlQuery += ` AND  v.locations = "${filter}"`
+        //     queryFilter=''
+        // }
+
+        if (query.type) {
+            filter = `${query.type}`
+            sqlQuery += ` AND t.id = "${filter}"`
+            queryFilter = 'filter'
+        }
 
         // filter
         // order by
@@ -56,10 +82,74 @@ const getVehicle = (query) => {
             sqlQuery += " ORDER BY ? ?";
             statment.push(mysql.raw(orderBy), mysql.raw(order));
         }
-        db.query(sqlQuery, statment, (err, result) => {
-            if (err) return reject({ status: 500, err });
-            resolve({ status: 200, result });
+
+        // limit offset
+        const page = parseInt(query.page)
+        const limit = parseInt(query.limit)
+        if (query.limit) {
+            queryLimit = 'limit'
+            sqlQuery += 'LIMIT ?'
+            statment.push(limit)
+        }
+        if (query.page && query.limit) {
+            queryLimit = 'limit'
+            queryPage = 'page'
+
+            sqlQuery += 'LIMIT ? OFFSET ?'
+            const offset = (page - 1) * limit
+            statment.push(limit, offset)
+        }
+
+        const countQuery = `SELECT COUNT(*) AS 'count' FROM Vehicles`
+        db.query(countQuery, (err, result) => {
+            if (err) return reject({ status: 500, err })
+
+            // variabel hasil count/hitung keseluruhan vehicles
+            const count = result[0].count
+
+            // link paginasi
+            let linkResult = ``;
+            let links = `${process.env.URL_HOST}/vehicles?`
+            let link1 = `${querySearch}=${queryKeyword}`
+            let link2 = `${queryFilter}=${filter}`
+            let link3 = `${queryBy}=${query.by}&${queryOrder}=${order}`
+
+            // pernyataan key
+            const bySearch = query.name || query.email
+            const byFilter = query.gender || query.role
+            const byOrderBy = order && orderBy
+
+            // jika Hanya Salah Satu key
+            if (bySearch) linkResult = links + link1
+            if (byFilter) linkResult = links + link2
+            if (byOrderBy) linkResult = links + link3
+            // jika ada dua key
+            if (bySearch && byFilter) linkResult = `${links}${link1}&${link2}`
+            if (bySearch && byOrderBy) linkResult = `${links}${link1}&${link3}`
+            if (byFilter && byOrderBy) linkResult = `${links}${link2}&${link3}`
+            // jika ada tiga key
+            if (bySearch && byFilter && byOrderBy) linkResult = `${links}${link1}&${link2}&${link3}`
+
+            let linkNext = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page + 1}`
+            let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
+
+            let meta = {
+                next: page == Math.ceil(count / limit) ? null : linkNext,
+                prev: page == 1 ? null : linkPrev,
+                total: count
+            }
+
+            if (query.page == undefined || query.limit == undefined) {
+                meta = null
+            }
+
+            db.query(sqlQuery, statment, (err, result) => {
+                if (err) return reject({ status: 500, err })
+                if (result.data == []) result = { data: 'is empty try again' }
+                resolve({ status: 200, result: { data: result, meta } })
+            })
         })
+
     })
 }
 
