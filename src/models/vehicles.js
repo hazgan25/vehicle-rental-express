@@ -91,7 +91,7 @@ const getVehicle = (query) => {
             sqlQuery += 'LIMIT ? '
             statment.push(limit)
         }
-        if (query.page && query.limit) {
+        if (query.page) {
             queryLimit = 'limit'
             queryPage = 'page'
 
@@ -100,7 +100,7 @@ const getVehicle = (query) => {
             statment.push(limit, offset)
         }
 
-        const countQuery = `SELECT COUNT(*) AS 'count' FROM Vehicles`
+        const countQuery = `SELECT COUNT(*) AS 'count' FROM vehicles`
         db.query(countQuery, (err, result) => {
             if (err) return reject({ status: 500, err })
 
