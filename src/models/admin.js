@@ -70,7 +70,7 @@ const detailAllUserData = (query) => {
             sqlQuery += 'LIMIT ? '
             statment.push(limit)
         }
-        if (query.page && query.limit) {
+        if (query.page) {
             queryLimit = 'limit'
             queryPage = 'page'
 
