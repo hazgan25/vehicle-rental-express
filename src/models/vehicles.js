@@ -208,8 +208,6 @@ const delVehicleById = (idVehicle, id) => {
     })
 }
 
-// cek
-
 module.exports = {
     postNewVehicle,
     getVehicle,
