@@ -1,35 +1,52 @@
 const mysql = require('mysql');
 const db = require('../database/db');
+const fs = require('fs')
 
-const postNewVehicle = (body, files, id) => {
+const addNewVehicleModel = (body, files, id) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `INSERT INTO vehicles SET ?`;
-        if (files) {
-            const filesArr = []
-            for (let i = 0; i < files.length; i++) {
-                filesArr.push(`${process.env.URL_HOST}/${files[i].filename}`)
-            }
-            let imgVahehicle = JSON.stringify(filesArr)
-            body = {
-                ...body,
-                images: imgVahehicle,
-                user_id: id
+        body = {
+            ...body,
+            user_id: id
+        }
+        const sqlQuery = `INSERT INTO vehicles SET ?`
+        db.query(sqlQuery, body, (err, result) => {
+            if (err) {
+                deleteImages(files, reject)
+                return reject(err)
             }
 
-        } else {
-            body = { ...body, user_id: id }
-        }
-        db.query(sqlQuery, body, (err, result) => {
-            if (err) return reject({ status: 500, err })
-            resolve({ status: 200, result })
+            const idVehicle = result.insertId
+            let values = 'VALUES'
+            const imgArr = []
+
+            files.forEach((data, idx) => {
+                if (idx !== files.length - 1) {
+                    values += ` (?, ?), `
+                }
+                else {
+                    values += ` (?, ?) `
+                }
+                imgArr.push(data.filename, idVehicle)
+                console.log(data.filename)
+            })
+
+            const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
+            db.query(imgQuery, imgArr, (err, result) => {
+                if (err) {
+                    deleteImages(files, reject)
+                    return reject(err)
+                }
+                resolve({ status: 200, result })
+            })
         })
     })
 }
 
-const getVehicle = (query) => {
+const listVehicleModels = (query) => {
     return new Promise((resolve, reject) => {
         let sqlQuery = `SELECT v.id, v.name AS "vehicle", v.locations,
-        t.name AS "types", v.images, v.price, u.name AS "owner"
+        t.name AS "types", v.price, u.name AS "owner",
+        (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) as image
         FROM vehicles v
         JOIN types t ON v.types_id = t.id
         JOIN users u ON v.user_id = u.id`;
@@ -44,7 +61,7 @@ const getVehicle = (query) => {
         let queryOrder = ''
 
         // searching
-        let keyword = "%%";
+        let keyword = "%%"
         if (query.name) {
             keyword = `%${query.name}%`
             sqlQuery += ` WHERE v.name LIKE "${keyword}"`
@@ -57,13 +74,7 @@ const getVehicle = (query) => {
         }
 
         // filter
-        let filter = '';
-        // if (query.location) {
-        //     filter = `${query.location}`
-        //     sqlQuery += ` AND  v.locations = "${filter}"`
-        //     queryFilter=''
-        // }
-
+        let filter = ''
         if (query.type) {
             filter = `${query.type}`
             sqlQuery += ` AND t.id = "${filter}"`
@@ -84,18 +95,18 @@ const getVehicle = (query) => {
         }
 
         // limit offset
-        const page = parseInt(query.page)
+        const page = parseInt(query.page.join(''))
         const limit = parseInt(query.limit)
         if (query.limit) {
             queryLimit = 'limit'
-            sqlQuery += 'LIMIT ? '
+            sqlQuery += ' LIMIT ? '
             statment.push(limit)
         }
-        if (query.page) {
+        if (query.limit && query.page) {
             queryLimit = 'limit'
             queryPage = 'page'
 
-            sqlQuery += 'OFFSET ?'
+            sqlQuery += ' OFFSET ? '
             const offset = (page - 1) * limit
             statment.push(limit, offset)
         }
@@ -106,6 +117,7 @@ const getVehicle = (query) => {
 
             // variabel hasil count/hitung keseluruhan vehicles
             const count = result[0].count
+            const newCount = count - page
 
             // link paginasi
             let linkResult = ``;
@@ -134,9 +146,9 @@ const getVehicle = (query) => {
             let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
 
             let meta = {
-                next: page == Math.ceil(count / limit) ? null : linkNext,
-                prev: page == 1 ? null : linkPrev,
-                total: count
+                next: newCount <= 0 ? null : linkNext,
+                prev: page == 1 || newCount < 0 ? null : linkPrev,
+                total: newCount < 0 ? null : newCount
             }
 
             if (query.page == undefined || query.limit == undefined) {
@@ -145,11 +157,38 @@ const getVehicle = (query) => {
 
             db.query(sqlQuery, statment, (err, result) => {
                 if (err) return reject({ status: 500, err })
-                if (result.data == []) result = { data: 'is empty try again' }
+                if (meta.next === null && meta.prev === null) result = { data: 'is empty try again' }
                 resolve({ status: 200, result: { data: result, meta } })
             })
         })
 
+    })
+}
+
+const vehicleDetailModel = (id) => {
+    return new Promise((resolve, reject) => {
+        const imgQuery = `SELECT images from vehicles_img WHERE vehicle_id = ?`
+        db.query(imgQuery, [id], (err, result) => {
+            if (err) return reject({ status: 500, err })
+
+            const images = []
+            result.forEach((data) => {
+                images.push(data)
+            })
+            const sqlQuery = `SELECT v.id, v.name AS "vehicle", v.locations,
+            t.name AS "types", v.price, u.name AS "owner",  u.name AS "owner"
+            FROM vehicles v
+            JOIN types t ON v.types_id = t.id
+            JOIN users u ON v.user_id = u.id
+            WHERE v.id = ?`
+
+            db.query(sqlQuery, [id], (err, result) => {
+                if (err) return reject({ status: 500, err })
+
+                result = { ...result[0], ...{ images } }
+                resolve({ status: 200, result })
+            })
+        })
     })
 }
 
@@ -208,9 +247,20 @@ const delVehicleById = (idVehicle, id) => {
     })
 }
 
+const deleteImages = (files, reject) => {
+    files.forEach((element) => {
+        fs.unlink(`media/${element}`, (err) => {
+            if (err) {
+                return reject(err);
+            }
+        })
+    })
+}
+
 module.exports = {
-    postNewVehicle,
-    getVehicle,
+    addNewVehicleModel,
+    listVehicleModels,
+    vehicleDetailModel,
     updateVehicles,
     delVehicleById
 };

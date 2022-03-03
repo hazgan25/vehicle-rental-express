@@ -65,16 +65,18 @@ const detailAllUserData = (query) => {
         // limit offset
         const page = parseInt(query.page)
         const limit = parseInt(query.limit)
+        console.log(query.page)
+        // console.log(parseInt(query.page))
         if (query.limit) {
             queryLimit = 'limit'
-            sqlQuery += 'LIMIT ? '
+            sqlQuery += ' LIMIT ? '
             statment.push(limit)
         }
-        if (query.page) {
+        if (query.limit && query.page) {
             queryLimit = 'limit'
             queryPage = 'page'
 
-            sqlQuery += 'OFFSET ?'
+            sqlQuery += ' OFFSET ? '
             const offset = (page - 1) * limit
             statment.push(limit, offset)
         }
@@ -85,6 +87,7 @@ const detailAllUserData = (query) => {
 
             // variabel hasil count/hitung keseluruhan user
             const count = result[0].count
+            const newCount = count - page
 
             // link paginasi
             let linkResult = ``;
@@ -113,18 +116,19 @@ const detailAllUserData = (query) => {
             let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
 
             let meta = {
-                next: page == Math.ceil(count / limit) ? null : linkNext,
-                prev: page == 1 ? null : linkPrev,
-                total: count
+                next: newCount <= 0 ? null : linkNext,
+                prev: page == 1 || newCount < 0 ? null : linkPrev,
+                total: newCount < 0 ? null : newCount
             }
 
             if (query.page == undefined || query.limit == undefined) {
                 meta = null
             }
+            // console.log(Math.ceil(count / limit))
 
             db.query(sqlQuery, statment, (err, result) => {
                 if (err) return reject({ status: 500, err })
-                if (result.data == []) result = { data: 'is empty try again' }
+                if (meta.next === null && meta.prev === null) result = { data: 'is empty try again' }
 
                 resolve({ status: 200, result: { data: result, meta } })
             })

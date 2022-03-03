@@ -2,26 +2,37 @@ const vehicleModel = require('../models/vehicles');
 const responseHelper = require('../helpers/sendResponse');
 
 // menambahkan kendaraan baru
-const postNewVehicle = (req, res) => {
+const addNewVehicle = (req, res) => {
     let { body, userInfo, files } = req
     const { id } = userInfo
     vehicleModel
-        .postNewVehicle(body, files, id)
+        .addNewVehicleModel(body, files, id)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch((status, err) => {
-            responseHelper.error(res, status, err);
+            responseHelper.error(res, status, err)
         })
 }
 
-const getVehicle = (req, res) => {
+const listVehicle = (req, res) => {
     const { query } = req;
     vehicleModel
-        .getVehicle(query)
+        .listVehicleModels(query)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result);
         }).catch(({ status, err }) => {
             responseHelper.error(res, status, err);
+        })
+}
+
+const vehicleDetail = (req, res) => {
+    const { id } = req.params
+    vehicleModel
+        .vehicleDetailModel(id)
+        .then(({ status, result }) => {
+            responseHelper.success(res, status, result)
+        }).catch(({ status, err }) => {
+            responseHelper.error(res, status, err)
         })
 }
 
@@ -53,8 +64,9 @@ const delVehicleById = (req, res) => {
 }
 
 module.exports = {
-    postNewVehicle,
-    getVehicle,
+    addNewVehicle,
+    listVehicle,
+    vehicleDetail,
     updateVehicles,
     delVehicleById
 };

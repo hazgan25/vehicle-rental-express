@@ -6,8 +6,9 @@ const upload = require('../controllers/upload');
 // const validate = require('../middlewares/validate')
 
 
-vehicleRouter.post('/', authorize.checkToken, authorize.checkRenter, upload.uploadHandlerVehicles, vehicleController.postNewVehicle);
-vehicleRouter.get('/', vehicleController.getVehicle);
+vehicleRouter.post('/', authorize.checkToken, authorize.checkRenter, upload.uploadHandlerVehicles, vehicleController.addNewVehicle);
+vehicleRouter.get('/', vehicleController.listVehicle);
+vehicleRouter.get('/:id', vehicleController.vehicleDetail)
 vehicleRouter.delete('/', authorize.checkToken, authorize.checkRenter, vehicleController.delVehicleById);
 vehicleRouter.put('/', authorize.checkToken, authorize.checkRenter, upload.uploadHandlerVehicles, vehicleController.updateVehicles);
 
