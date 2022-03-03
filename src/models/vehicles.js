@@ -26,8 +26,7 @@ const addNewVehicleModel = (body, files, id) => {
                 else {
                     values += ` (?, ?) `
                 }
-                imgArr.push(data.filename, idVehicle)
-                console.log(data.filename)
+                imgArr.push(`${process.env.URL_HOST}/${data.filename}`, idVehicle)
             })
 
             const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
