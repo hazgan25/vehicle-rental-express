@@ -17,7 +17,6 @@ const addNewVehicleModel = (body, files, id) => {
                 return reject(err)
             }
 
-
             const idVehicle = result.insertId
             let values = 'VALUES'
             const imgArr = []
@@ -31,8 +30,8 @@ const addNewVehicleModel = (body, files, id) => {
                 }
                 imgArr.push(`${process.env.URL_HOST}/${data.filename}`, idVehicle)
             })
-
             const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
+
             db.query(imgQuery, imgArr, (err, result) => {
                 if (err) {
                     deleteImages(files, reject)
@@ -44,15 +43,23 @@ const addNewVehicleModel = (body, files, id) => {
     })
 }
 
+// const addLocationModel = (body) => {
+//     return new Promise((resolve, rejects) => {
+
+//     })
+// }
+
 const listVehicleModels = (query) => {
     return new Promise((resolve, reject) => {
-        let sqlQuery = `SELECT v.id, v.name AS "vehicle", v.locations,
+        let sqlQuery = `SELECT v.id, v.name AS "vehicle", l.name,
         t.name AS "types", v.stock, v.rating, v.price, u.name AS "owner",
         (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) AS image,
         v.date_time AS 'date'
         FROM vehicles v
         JOIN types t ON v.types_id = t.id
-        JOIN users u ON v.user_id = u.id `
+        JOIN users u ON v.user_id = u.id 
+        JOIN locations l ON v.locations_id = l.id
+        `
 
         const statment = []
 
@@ -67,12 +74,12 @@ const listVehicleModels = (query) => {
         let keyword = ''
         if (query.search) {
             keyword = `%${query.search}%`
-            sqlQuery += ` WHERE v.name LIKE "${keyword}" OR v.locations LIKE '${keyword}' `
+            sqlQuery += ` WHERE v.name LIKE "${keyword}" OR l.name LIKE '${keyword}' `
             querySearch = 'search'
         }
 
         let filter = ''
-        if (query.type && !query.search) {
+        if (query.type && !query.search && !query.location) {
             filter = `${query.type}`
             sqlQuery += ` WHERE t.id = "${filter}" `
             queryFilter = 'type'
@@ -82,17 +89,29 @@ const listVehicleModels = (query) => {
             sqlQuery += ` AND t.id = "${filter}" `
             queryFilter = 'type'
         }
+        if (query.location && !query.search && !query.type) {
+            filter = `${query.location}`
+            sqlQuery += ` WHERE l.id = "${filter}" `
+            queryFilter = 'location'
+        }
+        if (query.location && query.search) {
+            filter = `${query.location}`
+            sqlQuery += ` AND l.id = "${filter}" `
+            queryFilter = 'location'
+        }
 
         const order = query.order;
         let orderBy = "";
         if (query.by && query.by.toLowerCase() == "vehicles") orderBy = "v.name"
         if (query.by && query.by.toLowerCase() == "type") orderBy = "t.name"
-        if (query.by && query.by.toLowerCase() == "locations") orderBy = "v.locations"
+        if (query.by && query.by.toLowerCase() == "locations") orderBy = "l.name"
         if (query.by && query.by.toLowerCase() == "rating") orderBy = "v.rating"
         if (query.by && query.by.toLowerCase() == "id") orderBy = "v.id"
         if (order && orderBy) {
             sqlQuery += " ORDER BY ? ?";
-            statment.push(mysql.raw(orderBy), mysql.raw(order));
+            statment.push(mysql.raw(orderBy), mysql.raw(order))
+            queryBy = 'by'
+            queryOrder = 'order'
         }
 
         const page = parseInt(query.page)
@@ -113,11 +132,13 @@ const listVehicleModels = (query) => {
 
         let countQuery = ` SELECT COUNT(*) AS "count" FROM vehicles v
         JOIN types t ON v.types_id = t.id
-        JOIN users u ON v.user_id = u.id`
+        JOIN users u ON v.user_id = u.id
+        JOIN locations l ON v.locations_id = l.id
+        `
 
         if (query.search) {
             keyword = `%${query.search}%`
-            countQuery += ` WHERE v.name LIKE "${keyword}" OR v.locations LIKE "${keyword}" `
+            countQuery += ` WHERE v.name LIKE "${keyword}" OR l.name LIKE "${keyword}" `
         }
         if (query.type && !query.search) {
             filter = `${query.type}`
@@ -140,13 +161,16 @@ const listVehicleModels = (query) => {
             let link2 = `${queryFilter}=${filter}`
             let link3 = `${queryBy}=${query.by}&${queryOrder}=${order}`
 
+            if (query.type && query.location) link2 = `type=${query.type}&location=${query.location}`
+
             const bySearch = query.search
-            const byFilter = query.gender || query.role
+            const byFilter = query.type || query.location
             const byOrderBy = order && orderBy
 
             if (bySearch) linkResult = links + link1
             if (byFilter) linkResult = links + link2
             if (byOrderBy) linkResult = links + link3
+
 
             if (bySearch && byFilter) linkResult = `${links}${link1}&${link2}`
             if (bySearch && byOrderBy) linkResult = `${links}${link1}&${link3}`
