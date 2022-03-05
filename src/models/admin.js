@@ -21,35 +21,36 @@ const detailAllUserData = (query) => {
         let queryBy = ''
         let queryOrder = ''
 
-        // Searching
         let keyword = ''
-        if (query.name) {
-            keyword = `%${query.name}%`
-            sqlQuery += `WHERE u.name LIKE '${keyword}' `
-            querySearch = 'name'
-            queryKeyword = `${query.name}`
-        }
-        if (query.email) {
-            keyword = `%${query.email}%`
-            sqlQuery += `WHERE u.email LIKE '${keyword}' `
-            querySearch = 'name'
-            queryKeyword = `${query.email}`
+        if (query.search) {
+            keyword = `%${query.search}%`
+            sqlQuery += ` WHERE u.name LIKE '${keyword}' OR u.email LIKE '${keyword}' `
+            querySearch = 'search'
+            queryKeyword = `${query.search}`
         }
 
-        // filter
         let filter = ''
-        if (query.gender) {
+        if (query.gender && !query.search) {
             filter = `${query.gender}`
-            sqlQuery += `AND g.id = '${filter}' `
+            sqlQuery += ` WHERE g.id = '${filter}' `
             queryFilter = 'gender'
         }
-        if (query.role) {
+        if (query.gender && query.search) {
+            filter = `${query.gender}`
+            sqlQuery += ` AND g.id = '${filter}' `
+            queryFilter = 'gender'
+        }
+        if (query.role && !query.search) {
             filter = `${query.role}`
-            sqlQuery += `AND r.id = '${filter}' `
+            sqlQuery += ` WHERE r.id = '${filter}' `
+            queryFilter = 'role'
+        }
+        if (query.role && query.search) {
+            filter = `${query.role}`
+            sqlQuery += ` AND r.id = '${filter}' `
             queryFilter = 'role'
         }
 
-        // order by
         const order = query.order
         let orderBy = ''
         if (query.by && query.by.toLowerCase() == 'name') orderBy = 'u.name'
@@ -62,12 +63,9 @@ const detailAllUserData = (query) => {
             queryOrder = 'order'
         }
 
-        // limit offset
         const page = parseInt(query.page)
         const limit = parseInt(query.limit)
-        console.log(query.page)
-        // console.log(parseInt(query.page))
-        if (query.limit) {
+        if (query.limit && !query.page) {
             queryLimit = 'limit'
             sqlQuery += ' LIMIT ? '
             statment.push(limit)
@@ -76,40 +74,59 @@ const detailAllUserData = (query) => {
             queryLimit = 'limit'
             queryPage = 'page'
 
-            sqlQuery += ' OFFSET ? '
+            sqlQuery += ' LIMIT ? OFFSET ? '
             const offset = (page - 1) * limit
             statment.push(limit, offset)
         }
 
-        const countQuery = `SELECT COUNT(*) AS 'count' FROM users`
+        let countQuery = `SELECT COUNT(*) AS 'count' FROM users `
+
+        if (query.search) {
+            keyword = `%${query.search}%`
+            countQuery += ` WHERE name LIKE '${keyword}' OR email LIKE '${keyword}'  `
+        }
+
+        if (query.gender && !query.search) {
+            filter = `${query.gender}`
+            countQuery += ` WHERE gender_id = '${filter}' `
+        }
+        if (query.gender && query.search) {
+            filter = `${query.gender}`
+            countQuery += ` AND gender_id = '${filter}' `
+        }
+        if (query.role && !query.search) {
+            filter = `${query.role}`
+            countQuery += ` WHERE roles_id = '${filter}' `
+        }
+        if (query.role && query.search) {
+            filter = `${query.role}`
+            countQuery += ` AND roles_id = '${filter}' `
+        }
+
         db.query(countQuery, (err, result) => {
             if (err) return reject({ status: 500, err })
 
-            // variabel hasil count/hitung keseluruhan user
             const count = result[0].count
             const newCount = count - page
 
-            // link paginasi
             let linkResult = ``;
             let links = `${process.env.URL_HOST}/admin/users?`
             let link1 = `${querySearch}=${queryKeyword}`
             let link2 = `${queryFilter}=${filter}`
             let link3 = `${queryBy}=${query.by}&${queryOrder}=${order}`
 
-            // pernyataan key
-            const bySearch = query.name || query.email
+            const bySearch = query.search
             const byFilter = query.gender || query.role
             const byOrderBy = order && orderBy
 
-            // jika Hanya Salah Satu key
             if (bySearch) linkResult = links + link1
             if (byFilter) linkResult = links + link2
             if (byOrderBy) linkResult = links + link3
-            // jika ada dua key
+
             if (bySearch && byFilter) linkResult = `${links}${link1}&${link2}`
             if (bySearch && byOrderBy) linkResult = `${links}${link1}&${link3}`
             if (byFilter && byOrderBy) linkResult = `${links}${link2}&${link3}`
-            // jika ada tiga key
+
             if (bySearch && byFilter && byOrderBy) linkResult = `${links}${link1}&${link2}&${link3}`
 
             let linkNext = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page + 1}`
@@ -118,17 +135,33 @@ const detailAllUserData = (query) => {
             let meta = {
                 next: newCount <= 0 ? null : linkNext,
                 prev: page == 1 || newCount < 0 ? null : linkPrev,
-                total: newCount < 0 ? null : newCount
+                limit: limit,
+                page: page,
+                totalPage: Math.ceil(count / limit),
+                pageRemaining:
+                    page == 1 && newCount < 0 ? null :
+                        count < limit ? null :
+                            newCount <= 0 ? null :
+                                Math.ceil(newCount / limit),
+                totalData: newCount < 0 ? null : count,
+                totalRemainingData:
+                    page == 1 && newCount < 0 ? null :
+                        count < limit ? null :
+                            newCount <= 0 ? null :
+                                newCount
             }
 
-            if (query.page == undefined || query.limit == undefined) {
-                meta = null
+            if (!query.page || !query.limit) {
+                meta = {
+                    next: null,
+                    prev: null,
+                    limit: null,
+                    page: null,
+                    totalData: newCount < 0 ? null : count
+                }
             }
-            // console.log(Math.ceil(count / limit))
-
             db.query(sqlQuery, statment, (err, result) => {
                 if (err) return reject({ status: 500, err })
-                if (meta.next === null && meta.prev === null) result = { data: 'is empty try again' }
 
                 resolve({ status: 200, result: { data: result, meta } })
             })

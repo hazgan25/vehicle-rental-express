@@ -8,12 +8,15 @@ const addNewVehicleModel = (body, files, id) => {
             ...body,
             user_id: id
         }
+
+        if (files.length === 0) return resolve({ status: 400, result: { msg: 'Please Add an Images' } })
         const sqlQuery = `INSERT INTO vehicles SET ?`
         db.query(sqlQuery, body, (err, result) => {
             if (err) {
                 deleteImages(files, reject)
                 return reject(err)
             }
+
 
             const idVehicle = result.insertId
             let values = 'VALUES'
@@ -44,12 +47,14 @@ const addNewVehicleModel = (body, files, id) => {
 const listVehicleModels = (query) => {
     return new Promise((resolve, reject) => {
         let sqlQuery = `SELECT v.id, v.name AS "vehicle", v.locations,
-        t.name AS "types", v.price, u.name AS "owner",
-        (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) as image
+        t.name AS "types", v.stock, v.rating, v.price, u.name AS "owner",
+        (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) AS image,
+        v.date_time AS 'date'
         FROM vehicles v
         JOIN types t ON v.types_id = t.id
-        JOIN users u ON v.user_id = u.id`;
-        const statment = [];
+        JOIN users u ON v.user_id = u.id `
+
+        const statment = []
 
         let querySearch = ''
         let queryKeyword = ''
@@ -59,44 +64,40 @@ const listVehicleModels = (query) => {
         let queryBy = ''
         let queryOrder = ''
 
-        // searching
-        let keyword = "%%"
-        if (query.name) {
-            keyword = `%${query.name}%`
-            sqlQuery += ` WHERE v.name LIKE "${keyword}"`
-            querySearch = 'name'
-        }
-        if (query.location) {
-            keyword = `%${query.location}%`
-            sqlQuery += ` WHERE v.location LIKE "${keyword}"`
-            querySearch = 'name'
+        let keyword = ''
+        if (query.search) {
+            keyword = `%${query.search}%`
+            sqlQuery += ` WHERE v.name LIKE "${keyword}" OR v.locations LIKE '${keyword}' `
+            querySearch = 'search'
         }
 
-        // filter
         let filter = ''
-        if (query.type) {
+        if (query.type && !query.search) {
             filter = `${query.type}`
-            sqlQuery += ` AND t.id = "${filter}"`
-            queryFilter = 'filter'
+            sqlQuery += ` WHERE t.id = "${filter}" `
+            queryFilter = 'type'
+        }
+        if (query.type && query.search) {
+            filter = `${query.type}`
+            sqlQuery += ` AND t.id = "${filter}" `
+            queryFilter = 'type'
         }
 
-        // filter
-        // order by
         const order = query.order;
         let orderBy = "";
-        if (query.by && query.by.toLowerCase() == "vehicles") orderBy = "v.name";
-        if (query.by && query.by.toLowerCase() == "type") orderBy = "t.name";
-        if (query.by && query.by.toLowerCase() == "locations") orderBy = "v.locationse";
-        if (query.by && query.by.toLowerCase() == "id") orderBy = "v.id";
+        if (query.by && query.by.toLowerCase() == "vehicles") orderBy = "v.name"
+        if (query.by && query.by.toLowerCase() == "type") orderBy = "t.name"
+        if (query.by && query.by.toLowerCase() == "locations") orderBy = "v.locations"
+        if (query.by && query.by.toLowerCase() == "rating") orderBy = "v.rating"
+        if (query.by && query.by.toLowerCase() == "id") orderBy = "v.id"
         if (order && orderBy) {
             sqlQuery += " ORDER BY ? ?";
             statment.push(mysql.raw(orderBy), mysql.raw(order));
         }
 
-        // limit offset
-        const page = parseInt(query.page.join(''))
+        const page = parseInt(query.page)
         const limit = parseInt(query.limit)
-        if (query.limit) {
+        if (query.limit && !query.page) {
             queryLimit = 'limit'
             sqlQuery += ' LIMIT ? '
             statment.push(limit)
@@ -105,40 +106,52 @@ const listVehicleModels = (query) => {
             queryLimit = 'limit'
             queryPage = 'page'
 
-            sqlQuery += ' OFFSET ? '
+            sqlQuery += ' LIMIT ? OFFSET ? '
             const offset = (page - 1) * limit
             statment.push(limit, offset)
         }
 
-        const countQuery = `SELECT COUNT(*) AS 'count' FROM vehicles`
+        let countQuery = ` SELECT COUNT(*) AS "count" FROM vehicles v
+        JOIN types t ON v.types_id = t.id
+        JOIN users u ON v.user_id = u.id`
+
+        if (query.search) {
+            keyword = `%${query.search}%`
+            countQuery += ` WHERE v.name LIKE "${keyword}" OR v.locations LIKE "${keyword}" `
+        }
+        if (query.type && !query.search) {
+            filter = `${query.type}`
+            countQuery += ` WHERE t.id = '${filter}' `
+        }
+        if (query.type && query.search) {
+            filter = `${query.type}`
+            countQuery += ` AND t.id = '${filter}' `
+        }
+
         db.query(countQuery, (err, result) => {
             if (err) return reject({ status: 500, err })
 
-            // variabel hasil count/hitung keseluruhan vehicles
             const count = result[0].count
             const newCount = count - page
 
-            // link paginasi
             let linkResult = ``;
             let links = `${process.env.URL_HOST}/vehicles?`
             let link1 = `${querySearch}=${queryKeyword}`
             let link2 = `${queryFilter}=${filter}`
             let link3 = `${queryBy}=${query.by}&${queryOrder}=${order}`
 
-            // pernyataan key
-            const bySearch = query.name || query.email
+            const bySearch = query.search
             const byFilter = query.gender || query.role
             const byOrderBy = order && orderBy
 
-            // jika Hanya Salah Satu key
             if (bySearch) linkResult = links + link1
             if (byFilter) linkResult = links + link2
             if (byOrderBy) linkResult = links + link3
-            // jika ada dua key
+
             if (bySearch && byFilter) linkResult = `${links}${link1}&${link2}`
             if (bySearch && byOrderBy) linkResult = `${links}${link1}&${link3}`
             if (byFilter && byOrderBy) linkResult = `${links}${link2}&${link3}`
-            // jika ada tiga key
+
             if (bySearch && byFilter && byOrderBy) linkResult = `${links}${link1}&${link2}&${link3}`
 
             let linkNext = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page + 1}`
@@ -147,20 +160,38 @@ const listVehicleModels = (query) => {
             let meta = {
                 next: newCount <= 0 ? null : linkNext,
                 prev: page == 1 || newCount < 0 ? null : linkPrev,
-                total: newCount < 0 ? null : newCount
+                limit: limit,
+                page: page,
+                totalPage: Math.ceil(count / limit),
+                pageRemaining:
+                    page == 1 && newCount < 0 ? null :
+                        count < limit ? null :
+                            newCount <= 0 ? null :
+                                Math.ceil(newCount / limit),
+                totalData: newCount < 0 ? null : count,
+                totalRemainingData:
+                    page == 1 && newCount < 0 ? null :
+                        count < limit ? null :
+                            newCount <= 0 ? null :
+                                newCount
             }
 
-            if (query.page == undefined || query.limit == undefined) {
-                meta = null
+            if (!query.page || !query.limit) {
+                meta = {
+                    next: null,
+                    prev: null,
+                    limit: null,
+                    page: null,
+                    totalData: newCount < 0 ? null : count
+                }
             }
 
             db.query(sqlQuery, statment, (err, result) => {
                 if (err) return reject({ status: 500, err })
-                if (meta.next === null && meta.prev === null) result = { data: 'is empty try again' }
+
                 resolve({ status: 200, result: { data: result, meta } })
             })
         })
-
     })
 }
 

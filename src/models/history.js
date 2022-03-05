@@ -20,8 +20,7 @@ const postNewHistory = (body, id) => {
 const getHistory = (query) => {
     return new Promise((resolve, reject) => {
         let sqlQuery = `SELECT h.id, u.name AS "users",
-        g.name AS "gender", v.name AS "vehicle",
-        v.image, t.name AS "type", v.locations,
+        g.name AS "gender", v.name AS "vehicle", t.name AS "type", v.locations,
         v.price, h.date_time AS "date", h.rating
         FROM historys h
         JOIN users u ON h.users_id = u.id
