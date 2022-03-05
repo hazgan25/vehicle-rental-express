@@ -229,11 +229,12 @@ const vehicleDetailModel = (id) => {
             result.forEach((data) => {
                 images.push(data)
             })
-            const sqlQuery = `SELECT v.id, v.name AS "vehicle", v.locations,
+            const sqlQuery = `SELECT v.id, v.name AS "vehicle", l.name,
             t.name AS "types", v.price, u.name AS "owner",  u.name AS "owner"
             FROM vehicles v
             JOIN types t ON v.types_id = t.id
             JOIN users u ON v.user_id = u.id
+            JOIN locations l ON v.locations_id = l.id
             WHERE v.id = ?`
 
             db.query(sqlQuery, [id], (err, result) => {
