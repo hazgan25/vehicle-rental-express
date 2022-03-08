@@ -6,12 +6,15 @@ const create = (body) => {
     return new Promise((resolve, reject) => {
         const { phone, email, password } = body
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
+        const phonePattern = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/
+
         const checkEmail = `SELECT * FROM users WHERE email = ?`
 
         db.query(checkEmail, [email], (err, result) => {
             if (err) return reject({ status: 500, err })
             if (phone === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input phone, email, And password' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
+            if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
             if (result.length > 0) return reject({ status: 401, err: "Email is Already" })
 
             const sqlQuery = `INSERT INTO users SET ?`
@@ -41,12 +44,15 @@ const createNewAdmin = (body) => {
     return new Promise((resolve, reject) => {
         const { phone, email, password } = body
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
+        const phonePattern = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/
+
         const checkEmail = `SELECT * FROM users WHERE email = ?`
 
         db.query(checkEmail, [email], (err, result) => {
             if (err) return reject({ status: 500, err })
             if (phone === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input phone, email, And password' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
+            if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
             if (result.length > 0) return reject({ status: 401, err: "Email is Already" })
 
             const sqlQuery = `INSERT INTO users SET ?`

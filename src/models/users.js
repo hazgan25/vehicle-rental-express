@@ -24,6 +24,8 @@ const editUserData = (userInfo, body, file) => {
         const { email, dob } = body
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
         const datePattern = /^([0-2][0-9]|(3)[0-1])(\/)(((0)[0-9])|((1)[0-2]))(\/)\d{4}$/
+        const phonePattern = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/
+
 
         const formatDate = dob.split('/').reverse().join('/')
         const checkEmail = `SELECT * FROM users WHERE email = ?`
@@ -32,6 +34,7 @@ const editUserData = (userInfo, body, file) => {
             if (err) return reject({ status: 500, err })
             if (result.length > 0 && userInfo.email !== email) return reject({ status: 401, err: 'Email Is Already' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
+            if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
 
             const sqlQuery = `UPDATE users SET ? WHERE id = ${userInfo.id}`
             if (file) body = { ...body, dob: formatDate, image: `${process.env.URL_HOST}/${file.filename}` }
