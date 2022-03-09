@@ -17,7 +17,7 @@ server.listen(port, () => {
     console.log(`server sudah terkoneksi di port ${port}`);
 });
 
-// manggil router
+// manggil router awal
 const corsOptions = {
     origin: "*",
     allowedHeader: "x-access-token",
