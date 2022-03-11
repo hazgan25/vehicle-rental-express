@@ -71,7 +71,10 @@ const editPasswordData = (id, body) => {
                         db.query(sqlQuery, [hashedPassword], (err, result) => {
                             if (err) return reject({ status: 500, err })
                             if (currentPass === newPass && currentPass !== '') return reject({ status: 401, err: 'The password is already in use, try to find another one' })
-                            if (currentPass == '' || newPass == '') return reject({ status: 401, err: 'Must be filled' })
+                            if (currentPass == '' && newPass == '') return reject({ status: 401, err: 'Must be filled' })
+                            if (currentPass == '') return reject({ status: 401, err: 'Current Password is Empty' })
+                            if (newPass == '') return reject({ status: 401, err: 'New Password is Empty' })
+
                             result = { msg: 'Change Password is Success' }
                             resolve({ status: 200, result })
                         })
