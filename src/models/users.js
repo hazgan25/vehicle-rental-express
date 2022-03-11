@@ -6,7 +6,7 @@ const userDataPersonal = (id) => {
     return new Promise((resolve, reject) => {
         const sqlQuery = `SELECT u.id, u.name, u.email, u.image,
         u.phone, u.active_year, g.name AS 'gender', u.address,
-        DATE_FORMAT(u.dob,'%d/%m/%Y') AS 'dob', r.name AS 'role'
+        DATE_FORMAT(u.dob,'%M %D %Y') AS 'dob', r.name AS 'role'
         FROM users u
         JOIN genders g ON u.gender_id = g.id
         JOIN roles r ON u.roles_id = r.id
