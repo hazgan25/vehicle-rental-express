@@ -1,53 +1,69 @@
-const mysql = require('mysql');
-const db = require('../database/db');
+const mysql = require('mysql2')
+const db = require('../database/db')
 const fs = require('fs')
 
 const addNewVehicleModel = (body, files, id) => {
     return new Promise((resolve, reject) => {
-        body = {
-            ...body,
-            user_id: id
-        }
+        const { locations_id, types_id } = body
+        const checkLocation = `SELECT * FROM locations Where id = ?`
 
-        if (files.length === 0) return resolve({ status: 400, result: { msg: 'Please Add an Images' } })
-        const sqlQuery = `INSERT INTO vehicles SET ?`
-        db.query(sqlQuery, body, (err, result) => {
+        db.query(checkLocation, [locations_id], (err, result) => {
             if (err) {
                 deleteImages(files, reject)
                 return reject(err)
             }
+            if (result.length === 0) return resolve({ status: 400, result: { err: `You haven't created a location id yet` } })
 
-            const idVehicle = result.insertId
-            let values = 'VALUES'
-            const imgArr = []
-
-            files.forEach((data, idx) => {
-                if (idx !== files.length - 1) {
-                    values += ` (?, ?), `
-                }
-                else {
-                    values += ` (?, ?) `
-                }
-                imgArr.push(`${process.env.URL_HOST}/${data.filename}`, idVehicle)
-            })
-            const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
-
-            db.query(imgQuery, imgArr, (err, result) => {
+            const checkType = `SELECT * FROM types WHERE id = ?`
+            db.query(checkType, [types_id], (err, result) => {
                 if (err) {
                     deleteImages(files, reject)
                     return reject(err)
                 }
-                resolve({ status: 200, result })
+
+                if (result.length === 0) return resolve({ status: 400, result: { err: `Wrong Types` } })
+
+                body = {
+                    ...body,
+                    user_id: id
+                }
+
+                if (files.length === 0) return resolve({ status: 400, result: { err: 'Please Add an Images' } })
+                const sqlQuery = `INSERT INTO vehicles SET ?`
+                db.query(sqlQuery, body, (err, result) => {
+                    if (err) {
+                        deleteImages(files, reject)
+                        return reject(err)
+                    }
+
+                    const idVehicle = result.insertId
+                    let values = 'VALUES'
+                    const imgArr = []
+
+                    files.forEach((data, idx) => {
+                        if (idx !== files.length - 1) {
+                            values += ` (?, ?), `
+                        }
+                        else {
+                            values += ` (?, ?) `
+                        }
+                        imgArr.push(`${process.env.URL_HOST}/${data.filename}`, idVehicle)
+                    })
+                    const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
+
+                    db.query(imgQuery, imgArr, (err, result) => {
+                        if (err) {
+                            deleteImages(files, reject)
+                            return reject(err)
+                        }
+                        resolve({ status: 200, result })
+                    })
+                })
             })
         })
+
     })
 }
-
-// const addLocationModel = (body) => {
-//     return new Promise((resolve, rejects) => {
-
-//     })
-// }
 
 const listVehicleModels = (query) => {
     return new Promise((resolve, reject) => {
@@ -250,34 +266,86 @@ const vehicleDetailModel = (id) => {
 // update vehicles PUT
 const updateVehicles = (body, id, files) => {
     return new Promise((resolve, reject) => {
-        const checkId = `SELECT * FROM vehicles WHERE id = ${body.id} AND user_id = ${id}`;
-        db.query(checkId, (err, result) => {
-            if (err) return reject({ status: 500, err });
-            if (result.length === 0) return reject({ status: 401, err: "Anda Bukan Pemilik Kendaraan Ini" });
+        const { locations_id, types_id } = body
 
-            const sqlQuery = `UPDATE vehicles SET ? WHERE id = ${body.id} AND user_id = ${id}`;
-            if (files) {
-                const filesArr = []
-                for (let i = 0; i < files.length; i++) {
-                    filesArr.push(`${process.env.URL_HOST}/${files[i].filename}`)
-                }
-                let imgVahehicle = JSON.stringify(filesArr)
-                body = {
-                    ...body,
-                    images: imgVahehicle,
-                }
-
-            } else {
-                body = { ...body }
+        const checkIdRenter = `SELECT * FROM vehicles WHERE id = ${body.id} AND user_id = ${id}`
+        db.query(checkIdRenter, (err, result) => {
+            if (err) {
+                deleteImages(files, reject)
+                return reject(err)
             }
+            if (result.length === 0) return resolve({ status: 400, result: { err: `You are not the owner of this vehicle` } })
 
-            db.query(sqlQuery, body, (err, result) => {
-                if (err) return reject({ status: 500, err });
-                result = {
-                    ...result,
-                    body
+            const checkLocation = `SELECT * FROM locations WHERE id = ?`
+            db.query(checkLocation, [locations_id], (err, result) => {
+                if (err) {
+                    deleteImages(files, reject)
+                    return reject(err)
                 }
-                resolve({ status: 200, result });
+                if (result.length === 0) return resolve({ status: 400, result: { err: `You haven't created a location id yet` } })
+
+                const checkType = `SELECT * FROM types WHERE id = ?`
+                db.query(checkType, [types_id], (err, result) => {
+                    if (err) {
+                        deleteImages(files, reject)
+                        return reject(err)
+                    }
+                    if (result.length === 0) return resolve({ status: 400, result: { err: `Wrong Types` } })
+
+                    const totalFiles = files.length
+
+                    const sqlQuery = `UPDATE vehicles SET ? WHERE id = ${body.id} AND user_id = ${id}`
+                    db.query(sqlQuery, body, (err, result) => {
+                        if (err) {
+                            if (files.length !== 0) {
+                                deleteImages(files, reject)
+                            }
+                            return reject(err)
+                        }
+
+                        result = { msg: 'Update Success', data: body }
+                        if (files.length === 0) {
+                            return resolve({ status: 200, result })
+                        }
+
+                        const deleteFiles = `DELETE FROM vehicles_img WHERE vehicle_id = ? LIMIT ?`
+                        db.query(deleteFiles, [body.id, totalFiles], (err) => {
+                            if (err) {
+                                if (files.length !== 0) {
+                                    deleteImages(files, reject)
+                                }
+                                return reject(err)
+                            }
+                        })
+
+                        let values = 'VALUES'
+                        const imgArr = []
+                        const picImg = []
+
+                        files.forEach((data, idx) => {
+                            if (idx !== files.length - 1) {
+                                values += ` (?, ?), `
+                            }
+                            else {
+                                values += ` (?, ?) `
+                            }
+                            imgArr.push(`${process.env.URL_HOST}/${data.filename}`, body.id)
+                            picImg.push(`${process.env.URL_HOST}/${data.filename}`)
+                        })
+
+                        const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
+                        db.query(imgQuery, imgArr, (err, result) => {
+                            if (err) {
+                                if (files.length !== 0) {
+                                    deleteImages(files, reject)
+                                }
+                            }
+                            result = { msg: 'Update is Success With Image', data: body, picImg }
+                            resolve({ status: 200, result })
+
+                        })
+                    })
+                })
             })
         })
     })
@@ -286,17 +354,15 @@ const updateVehicles = (body, id, files) => {
 const delVehicleById = (idVehicle, id) => {
     return new Promise((resolve, reject) => {
 
-        const checkId = `SELECT * FROM vehicles WHERE id = ${idVehicle} AND user_id = ${id}`;
+        const checkId = `SELECT * FROM vehicles WHERE id = ${idVehicle} AND user_id = ${id}`
         db.query(checkId, (err, result) => {
-            if (err) return reject({ status: 500, err });
-            if (result.length === 0) return reject({ status: 401, err: "Anda Bukan Pemilik Kendaraan Ini" });
-            // console.log(result.length);
+            if (err) return reject({ status: 500, err })
+            if (result.length === 0) return reject({ status: 401, err: "You are not the owner of this vehicle" })
 
-            // console.log(id)
-            const sqlQuery = `DELETE FROM vehicles WHERE id = ${idVehicle} AND user_id = ${id}`;
+            const sqlQuery = `DELETE FROM vehicles WHERE id = ${idVehicle} AND user_id = ${id}`
             db.query(sqlQuery, (err, result) => {
-                if (err) return reject({ status: 500, err });
-                resolve({ status: 200, result });
+                if (err) return reject({ status: 500, err })
+                resolve({ status: 200, result })
             })
         })
     })

@@ -12,10 +12,10 @@ const uploadProfile = multer({
     }),
     fileFilter: (req, file, cb) => {
         if (file.mimetype === "image/jpg" || file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
-            cb(null, true);
+            cb(null, true)
         }
         else {
-            cb(null, false);
+            cb(null, false)
         }
     },
     limits: { fileSize: 1 * 1024 * 1724 } //1,7mb
@@ -32,10 +32,10 @@ const uploadVehicle = multer({
     }),
     fileFilter: (req, file, cb) => {
         if (file.mimetype === "image/jpg" || file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
-            cb(null, true);
+            cb(null, true)
         }
         else {
-            cb(null, false);
+            cb(null, false)
         }
     },
     limits: { fileSize: 1 * 1024 * 1724 } //1,7mb

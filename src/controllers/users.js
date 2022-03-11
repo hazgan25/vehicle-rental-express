@@ -19,9 +19,9 @@ const editUser = (req, res) => {
     userModel
         .editUserData(userInfo, body, file)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.success(res, status, err);
+            responseHelper.success(res, status, err)
         })
 }
 
@@ -31,9 +31,9 @@ const editPassword = (req, res) => {
     userModel
         .editPasswordData(id, body)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.success(res, status, err);
+            responseHelper.success(res, status, err)
         })
 }
 
@@ -43,9 +43,9 @@ const upgradeUser = (req, res) => {
     userModel
         .upgradeUsertoRenter(id)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.success(res, status, err);
+            responseHelper.success(res, status, err)
         })
 }
 
@@ -55,9 +55,9 @@ const deleteAccount = (req, res) => {
     userModel
         .deleteAccountUser(id, token)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.success(res, status, err);
+            responseHelper.success(res, status, err)
         })
 }
 

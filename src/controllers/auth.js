@@ -3,39 +3,39 @@ const responseHelprer = require('../helpers/sendResponse')
 
 // buat akun khusus user
 const register = (req, res) => {
-    const { body } = req;
+    const { body } = req
     authModel
         .create(body)
         .then(({ status, result }) => {
-            responseHelprer.success(res, status, result);
+            responseHelprer.success(res, status, result)
         })
         .catch(({ status, err }) => {
-            responseHelprer.error(res, status, err);
+            responseHelprer.error(res, status, err)
         })
 }
 
 // buat akun khusus admin
 const registerAdmin = (req, res) => {
-    const { body } = req;
+    const { body } = req
     authModel
         .createNewAdmin(body)
         .then(({ status, result }) => {
-            responseHelprer.success(res, status, result);
+            responseHelprer.success(res, status, result)
         })
         .catch(({ status, err }) => {
-            responseHelprer.error(res, status, err);
+            responseHelprer.error(res, status, err)
         })
 }
 
 const login = (req, res) => {
-    const { body } = req;
+    const { body } = req
     authModel
         .signIn(body)
         .then(({ status, result }) => {
-            responseHelprer.success(res, status, result);
+            responseHelprer.success(res, status, result)
         })
         .catch(({ status, err }) => {
-            responseHelprer.error(res, status, err);
+            responseHelprer.error(res, status, err)
         })
 }
 

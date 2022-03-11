@@ -1,5 +1,5 @@
 const mysql = require('mysql');
-const db = require('../database/db');
+const db = require('../database/db')
 
 // menambahkan data pembeli baru
 const postNewHistory = (body, id) => {
@@ -54,52 +54,52 @@ const getHistory = (query) => {
         // order by
         const order = query.order;
         let orderBy = "";
-        if (query.by && query.by.toLowerCase() == "users") orderBy = "u.name";
-        if (query.by && query.by.toLowerCase() == "genders") orderBy = "g.name";
-        if (query.by && query.by.toLowerCase() == "type") orderBy = "t.name";
-        if (query.by && query.by.toLowerCase() == "location") orderBy = "l.name";
-        if (query.by && query.by.toLowerCase() == "price") orderBy = "v.price";
-        if (query.by && query.by.toLowerCase() == "id") orderBy = "h.id";
+        if (query.by && query.by.toLowerCase() == "users") orderBy = "u.name"
+        if (query.by && query.by.toLowerCase() == "genders") orderBy = "g.name"
+        if (query.by && query.by.toLowerCase() == "type") orderBy = "t.name"
+        if (query.by && query.by.toLowerCase() == "location") orderBy = "l.name"
+        if (query.by && query.by.toLowerCase() == "price") orderBy = "v.price"
+        if (query.by && query.by.toLowerCase() == "id") orderBy = "h.id"
         if (order && orderBy) {
-            sqlQuery += " ORDER BY ? ?";
-            statment.push(mysql.raw(orderBy), mysql.raw(order));
+            sqlQuery += " ORDER BY ? ?"
+            statment.push(mysql.raw(orderBy), mysql.raw(order))
         }
 
         // limit and offset
-        const page = parseInt(query.page);
-        const limit = parseInt(query.limit);
+        const page = parseInt(query.page)
+        const limit = parseInt(query.limit)
         if (query.page && query.limit) {
-            sqlQuery += " Limit ? OFFSET ?";
-            const offset = (page - 1) * limit;
-            statment.push(limit, offset);
+            sqlQuery += " Limit ? OFFSET ?"
+            const offset = (page - 1) * limit
+            statment.push(limit, offset)
         }
 
-        const countQuery = `select count(*) as "count" from historys`;
+        const countQuery = `select count(*) as "count" from historys`
         db.query(countQuery, (err, result) => {
-            if (err) return reject({ status: 500, err });
+            if (err) return reject({ status: 500, err })
 
             // paginasi
-            const count = result[0].count;
+            const count = result[0].count
             // links tujuan paginasi
             let links = '/historys?'
-            let link1 = `${querySearch}=${searchKeyword}`;
-            let link2 = `${queryFilter}=${filter}`;
-            let link3 = `by=${query.by}&order=${order}`;
+            let link1 = `${querySearch}=${searchKeyword}`
+            let link2 = `${queryFilter}=${filter}`
+            let link3 = `by=${query.by}&order=${order}`
             // pernyataan key
             const bySearch = query.name;
             const byFilter = query.gender || query.vehicle
-                || query.type || query.location;
-            const byOrderBy = order && orderBy;
+                || query.type || query.location
+            const byOrderBy = order && orderBy
             // jika hanya 1 key
-            if (bySearch) links += link1;
-            if (byFilter) links += link2;
-            if (byOrderBy) links += link3;
+            if (bySearch) links += link1
+            if (byFilter) links += link2
+            if (byOrderBy) links += link3
             // jika ada 2 key
-            if (bySearch && byFilter) links = `${link1}&${link2}`;
-            if (bySearch && byOrderBy) links = `${link1}&${link3}`;
-            if (byFilter && byOrderBy) links = `${link2}&${link3}`;
+            if (bySearch && byFilter) links = `${link1}&${link2}`
+            if (bySearch && byOrderBy) links = `${link1}&${link3}`
+            if (byFilter && byOrderBy) links = `${link2}&${link3}`
             //jika ada tiga key
-            if (bySearch && byFilter && byOrderBy) links = `${link1}&${link2}&${link3}`;
+            if (bySearch && byFilter && byOrderBy) links = `${link1}&${link2}&${link3}`
 
             const meta = {
                 next:
@@ -115,7 +115,7 @@ const getHistory = (query) => {
 
             db.query(sqlQuery, statment, (err, result) => {
                 if (err) return reject({ status: 500, err });
-                resolve({ status: 200, result: { data: result, meta } });
+                resolve({ status: 200, result: { data: result, meta } })
             })
         })
     });
@@ -137,7 +137,7 @@ const getPopularVehicle = (query) => {
 
         // limit and offset
         // const page = parseInt(query.page);
-        const limit = parseInt(query.limit);
+        const limit = parseInt(query.limit)
         if (query.limit) {
             sqlQuery += " Limit ?";
             // const offset = (page - 1) * limit;
@@ -146,7 +146,7 @@ const getPopularVehicle = (query) => {
 
 
         db.query(sqlQuery, statment, (err, result) => {
-            if (err) return reject({ status: 500, err });
+            if (err) return reject({ status: 500, err })
             resolve({ status: 200, result });
             console.log(result)
         })
@@ -156,10 +156,10 @@ const getPopularVehicle = (query) => {
 //Menghapus data history By ID
 const delHistoryById = (idHistory) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `DELETE FROM historys WHERE id = ${idHistory}`;
+        const sqlQuery = `DELETE FROM historys WHERE id = ${idHistory}`
         db.query(sqlQuery, (err, result) => {
-            if (err) return reject({ status: 500, err });
-            resolve({ status: 200, result });
+            if (err) return reject({ status: 500, err })
+            resolve({ status: 200, result })
         })
     })
 }

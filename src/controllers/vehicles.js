@@ -15,13 +15,13 @@ const addNewVehicle = (req, res) => {
 }
 
 const listVehicle = (req, res) => {
-    const { query } = req;
+    const { query } = req
     vehicleModel
         .listVehicleModels(query)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.error(res, status, err);
+            responseHelper.error(res, status, err)
         })
 }
 
@@ -37,29 +37,29 @@ const vehicleDetail = (req, res) => {
 }
 
 const updateVehicles = (req, res) => {
-    let { body, userInfo, files } = req;
+    let { body, userInfo, files } = req
     const { id } = userInfo
     vehicleModel
         .updateVehicles(body, id, files)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.success(res, status, err);
+            responseHelper.success(res, status, err)
         })
 }
 
 // menghapus data kendaraan byId
 const delVehicleById = (req, res) => {
-    const { query } = req;
-    const { id } = req.userInfo;
+    const { query, userInfo } = req
+    const { id } = userInfo
+    const idVehicle = query.id
 
-    const idVehicle = query.id;
     vehicleModel
         .delVehicleById(idVehicle, id)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.error(res, status, err);
+            responseHelper.error(res, status, err)
         });
 }
 

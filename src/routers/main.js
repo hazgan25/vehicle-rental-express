@@ -6,6 +6,7 @@ const mainRouter = express.Router();
 const wellcomeRouter = require('./wellcome')
 const userRouter = require('./users')
 const vehicleRouter = require('./vehicles')
+const locationRouter = require('./locations')
 const historyRouter = require('./history')
 const authRouter = require('./auth')
 const adminRouter = require('./admin')
@@ -15,9 +16,10 @@ const adminRouter = require('./admin')
 mainRouter.use('/wellcome', wellcomeRouter) //wellcome
 mainRouter.use('/auth', authRouter)
 mainRouter.use('/admin', adminRouter)
-mainRouter.use('/users/', userRouter) //user
-mainRouter.use('/vehicles', vehicleRouter) //vehicles
-mainRouter.use('/history', historyRouter) //history
+mainRouter.use('/users', userRouter)
+mainRouter.use('/vehicles', vehicleRouter)
+mainRouter.use('/locations', locationRouter)
+mainRouter.use('/history', historyRouter)
 
 // mainRouter.post("/upload", upload.single("vehicles"), (req, res) => {
 //     res.status(200).json({ msg: "Success", url: req.file });

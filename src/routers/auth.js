@@ -4,8 +4,8 @@ const authController = require('../controllers/auth')
 const { register } = require('../middlewares/validate')
 const { checkToken } = require('../middlewares/authorize')
 
-authRouter.post('/register', register, authController.register) //register sebagai users
-authRouter.post('/register/admin', register, authController.registerAdmin) //register admin
+authRouter.post('/register', register, authController.register)
+authRouter.post('/register/admin', register, authController.registerAdmin)
 authRouter.post('/login', authController.login)
 authRouter.delete('/logout', checkToken, authController.logout)
 

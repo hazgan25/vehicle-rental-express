@@ -1,11 +1,11 @@
-require("dotenv").config();
-const express = require('express');
-const morgan = require('morgan');
-const cors = require('cors');
+require("dotenv").config()
+const express = require('express')
+const morgan = require('morgan')
+const cors = require('cors')
 
-const mainRouter = require('./src/routers/main');
+const mainRouter = require('./src/routers/main')
 
-const server = express();
+const server = express()
 const logger = morgan(
     ":method :url :status :res[content-length] - :response-time ms"
 );
@@ -14,7 +14,7 @@ const logger = morgan(
 const port = process.env.PORT || 8000
 
 server.listen(port, () => {
-    console.log(`server sudah terkoneksi di port ${port}`);
+    console.log(`server sudah terkoneksi di port ${port}`)
 });
 
 // manggil router awal

@@ -1,5 +1,5 @@
-const responseHelper = require('../helpers/sendResponse');
-const historyModel = require('../models/history');
+const responseHelper = require('../helpers/sendResponse')
+const historyModel = require('../models/history')
 
 // menambahkan data pembeli baru
 const postNewHistory = (req, res) => {
@@ -8,7 +8,7 @@ const postNewHistory = (req, res) => {
     historyModel
         .postNewHistory(body, id)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         })
         .catch(({ status, err }) => {
             res.status(status).json({ msg: "Terjadi Error", err })
@@ -21,33 +21,33 @@ const getHistory = (req, res) => {
     historyModel
         .getHistory(query)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.error(res, status, err);
+            responseHelper.error(res, status, err)
         })
 }
 
 const getPopularVehicle = (req, res) => {
-    const { query } = req;
+    const { query } = req
     historyModel
         .getPopularVehicle(query)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         })
         .catch(({ status, err }) => {
-            responseHelper.error(res, status, err);
+            responseHelper.error(res, status, err)
         })
 }
 
 const delHistoryById = (req, res) => {
-    const { query } = req;
-    const idHistory = query.id;
+    const { query } = req
+    const idHistory = query.id
     historyModel
         .delHistoryById(idHistory)
         .then(({ status, result }) => {
-            responseHelper.success(res, status, result);
+            responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
-            responseHelper.error(res, status, err);
+            responseHelper.error(res, status, err)
         });
 }
 
