@@ -36,6 +36,8 @@ const vehicle = (req, res, next) => {
 
 }
 
+// del validate
+
 module.exports = {
     register,
     vehicle,
