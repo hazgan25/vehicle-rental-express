@@ -7,6 +7,7 @@ const uploadHandleUsers = (req, res, next) => {
         } else if (err) {
             const { body } = req
             console.log(body)
+            console.log(err)
             return res.status(401).json({ msg: "Just JPG, PNG, JPEG formated" })
         }
         next();
