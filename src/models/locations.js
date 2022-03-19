@@ -2,14 +2,22 @@ const db = require('../database/db')
 
 const addNewLocationModel = (body, id) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `INSERT INTO locations SET ?`
-        body = {
-            ...body,
-            user_id: id
-        }
-        db.query(sqlQuery, body, (err, result) => {
+        const { name } = body
+        const checkLocation = `SELECT * from locations WHERE name = ?`
+        db.query(checkLocation, [name], (err, result) => {
             if (err) return reject({ status: 500, err })
-            resolve({ status: 200, result })
+            if (result.length > 0) return resolve({ status: 401, result: 'Location is Already' })
+            if (name === '') return resolve({ status: 403, result: 'You Must Input Locations' })
+
+            const sqlQuery = `INSERT INTO locations SET ?`
+            body = {
+                ...body,
+                user_id: id
+            }
+            db.query(sqlQuery, body, (err, result) => {
+                if (err) return reject({ status: 500, err })
+                resolve({ status: 200, result })
+            })
         })
     })
 }

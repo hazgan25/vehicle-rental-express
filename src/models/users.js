@@ -34,7 +34,7 @@ const editUserData = (userInfo, body, file) => {
             if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
 
             const sqlQuery = `UPDATE users SET ? WHERE id = ${userInfo.id}`
-            if (file) body = { ...body, image: `${process.env.URL_HOST}/${file.filename}` }
+            if (file) body = { ...body, image: file.filename }
 
             if (!file) body = { ...body, }
 

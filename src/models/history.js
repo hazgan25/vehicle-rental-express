@@ -4,15 +4,35 @@ const db = require('../database/db')
 // menambahkan data pembeli baru
 const postNewHistory = (body, id) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = 'INSERT INTO historys SET ?'
-        body = {
-            ...body,
-            users_id: id
-        }
-        db.query(sqlQuery, body, (err, result) => {
+        const { date, vehicles_id, quantity } = body
+        const vehicleQuery = `SELECT * FROM vehicles Where id  = ?`
+        db.query(vehicleQuery, [vehicles_id], (err, result) => {
+            const { price, stock } = result[0]
             if (err) return reject({ status: 500, err })
-            if (body.rating > 5) reject({ status: 401, err: 'Maksimal 5' })
-            resolve({ status: 200, result })
+            if (quantity === '') return resolve({ status: 400, result: { err: 'You Must Input quality' } })
+            if (stock === 0) return resolve({ satus: 400, result: { msg: 'Stock is Empty' } })
+            if (quantity > stock) return resolve({ satus: 400, result: { msg: 'overstock' } })
+
+            body = {
+                ...body,
+                users_id: id,
+                payment: price * date * quantity,
+                status_id: 2
+            }
+
+            const totalStock = stock - quantity
+            const updateStock = `Update vehicles SET stock = ${totalStock} WHERE id = ?`
+            db.query(updateStock, [vehicles_id], (err, result) => {
+                if (err) return reject({ status: 500, err })
+                console.log('ini update', result)
+
+                const sqlQuery = 'INSERT INTO historys SET ?'
+                db.query(sqlQuery, body, (err, result) => {
+                    if (err) return reject({ status: 500, err })
+
+                    resolve({ status: 200, result })
+                })
+            })
         })
     })
 }

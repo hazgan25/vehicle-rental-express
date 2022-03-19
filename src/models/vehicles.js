@@ -4,7 +4,8 @@ const fs = require('fs')
 
 const addNewVehicleModel = (body, files, id) => {
     return new Promise((resolve, reject) => {
-        const { locations_id, types_id } = body
+        const { locations_id, types_id, name, description, price } = body
+        const numberPatern = /^[0-9]*$/
         const checkLocation = `SELECT * FROM locations Where id = ?`
 
         db.query(checkLocation, [locations_id], (err, result) => {
@@ -12,7 +13,12 @@ const addNewVehicleModel = (body, files, id) => {
                 deleteImages(files, reject)
                 return reject(err)
             }
-            if (result.length === 0) return resolve({ status: 400, result: { err: `You haven't created a location id yet` } })
+
+            if (name === '') return resolve({ status: 400, result: { err: 'Please Input Vehicle Name' } })
+            if (description === '') return resolve({ status: 400, result: { err: 'Please Input description' } })
+            if (price === '') return resolve({ status: 400, result: { err: 'Please Input Price' } })
+            if (!numberPatern.test(price)) return resolve({ status: 400, result: { err: 'Price Must Number' } })
+            if (result.length === 0) return resolve({ status: 400, result: { err: `You haven't added a location` } })
 
             const checkType = `SELECT * FROM types WHERE id = ?`
             db.query(checkType, [types_id], (err, result) => {
@@ -47,11 +53,12 @@ const addNewVehicleModel = (body, files, id) => {
                         else {
                             values += ` (?, ?) `
                         }
-                        imgArr.push(`${process.env.URL_HOST}/${data.filename}`, idVehicle)
+                        imgArr.push(data.filename, idVehicle)
                     })
                     const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
 
                     db.query(imgQuery, imgArr, (err, result) => {
+                        console.log(imgQuery)
                         if (err) {
                             deleteImages(files, reject)
                             return reject(err)
@@ -68,7 +75,9 @@ const addNewVehicleModel = (body, files, id) => {
 const listVehicleModels = (query) => {
     return new Promise((resolve, reject) => {
         let sqlQuery = `SELECT v.id, v.name AS "vehicle", l.name,
-        t.name AS "types", v.stock, v.rating, v.price, u.name AS "owner",
+        t.name AS "types", v.stock,
+        (SELECT CAST(AVG(rating) AS DECIMAL(10,1)) FROM historys where Vehicles_id = v.id) AS rating
+        , v.price, u.name AS "owner",
         (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) AS image,
         v.date_time AS 'date'
         FROM vehicles v
@@ -121,7 +130,7 @@ const listVehicleModels = (query) => {
         if (query.by && query.by.toLowerCase() == "vehicles") orderBy = "v.name"
         if (query.by && query.by.toLowerCase() == "type") orderBy = "t.name"
         if (query.by && query.by.toLowerCase() == "locations") orderBy = "l.name"
-        if (query.by && query.by.toLowerCase() == "rating") orderBy = "v.rating"
+        if (query.by && query.by.toLowerCase() == "rating") orderBy = "rating"
         if (query.by && query.by.toLowerCase() == "id") orderBy = "v.id"
         if (order && orderBy) {
             sqlQuery += " ORDER BY ? ?";
@@ -245,8 +254,9 @@ const vehicleDetailModel = (id) => {
             result.forEach((data) => {
                 images.push(data)
             })
-            const sqlQuery = `SELECT v.id, v.name AS "vehicle", l.name,
-            t.name AS "types", v.price, u.name AS "owner",  u.name AS "owner"
+            const sqlQuery = `SELECT v.id, v.name AS "vehicle", l.name AS "location", locations_id,
+            (SELECT CAST(AVG(rating) AS DECIMAL(10,1)) FROM historys where Vehicles_id = v.id) AS rating,
+            stock, types_id, t.name AS "types", v.price, u.name AS "owner_name",  u.id AS "owner_id"
             FROM vehicles v
             JOIN types t ON v.types_id = t.id
             JOIN users u ON v.user_id = u.id
@@ -266,7 +276,8 @@ const vehicleDetailModel = (id) => {
 // update vehicles PUT
 const updateVehicles = (body, id, files) => {
     return new Promise((resolve, reject) => {
-        const { locations_id, types_id } = body
+        const { locations_id, types_id, price } = body
+        const numberPatern = /^[0-9]*$/
 
         const checkIdRenter = `SELECT * FROM vehicles WHERE id = ${body.id} AND user_id = ${id}`
         db.query(checkIdRenter, (err, result) => {
@@ -275,6 +286,8 @@ const updateVehicles = (body, id, files) => {
                 return reject(err)
             }
             if (result.length === 0) return resolve({ status: 400, result: { err: `You are not the owner of this vehicle` } })
+            if (price === '') return resolve({ status: 400, result: { err: 'Please Input Price' } })
+            if (!numberPatern.test(price)) return resolve({ status: 400, result: { err: 'Wrong format price' } })
 
             const checkLocation = `SELECT * FROM locations WHERE id = ?`
             db.query(checkLocation, [locations_id], (err, result) => {
@@ -329,8 +342,8 @@ const updateVehicles = (body, id, files) => {
                             else {
                                 values += ` (?, ?) `
                             }
-                            imgArr.push(`${process.env.URL_HOST}/${data.filename}`, body.id)
-                            picImg.push(`${process.env.URL_HOST}/${data.filename}`)
+                            imgArr.push(data.filename, body.id)
+                            picImg.push(data.filename)
                         })
 
                         const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
