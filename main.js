@@ -19,7 +19,7 @@ server.listen(port, () => {
 
 // manggil router awal
 const corsOptions = {
-    origin: "*",
+    origin: ["http://localhost:3000"],
     allowedHeader: "x-access-token",
     method: ["GET", "POST", "PATCH", "DETELE", "OPTIONS"]
 };

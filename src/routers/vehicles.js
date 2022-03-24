@@ -8,6 +8,6 @@ vehicleRouter.post('/', authorize.checkToken, authorize.checkRenter, upload.uplo
 vehicleRouter.get('/', vehicleController.listVehicle)
 vehicleRouter.get('/:id', vehicleController.vehicleDetail)
 vehicleRouter.delete('/', authorize.checkToken, authorize.checkRenter, vehicleController.delVehicleById)
-vehicleRouter.put('/', authorize.checkToken, authorize.checkRenter, upload.uploadHandlerVehicles, vehicleController.updateVehicles)
+vehicleRouter.patch('/:id', authorize.checkToken, authorize.checkRenter, upload.uploadHandlerVehicles, vehicleController.updateVehicles)
 
 module.exports = vehicleRouter

@@ -101,6 +101,7 @@ const listVehicleModels = (query) => {
             keyword = `%${query.search}%`
             sqlQuery += ` WHERE v.name LIKE "${keyword}" OR l.name LIKE '${keyword}' `
             querySearch = 'search'
+            queryKeyword = `${query.search}`
         }
 
         let filter = ''
@@ -180,7 +181,7 @@ const listVehicleModels = (query) => {
             const count = result[0].count
             const newCount = count - page
 
-            let linkResult = ``;
+            let linkResult = ``
             let links = `${process.env.URL_HOST}/vehicles?`
             let link1 = `${querySearch}=${queryKeyword}`
             let link2 = `${queryFilter}=${filter}`
@@ -274,13 +275,13 @@ const vehicleDetailModel = (id) => {
 }
 
 // update vehicles PUT
-const updateVehicles = (body, id, files) => {
+const updateVehicles = (body, id, files, params) => {
     return new Promise((resolve, reject) => {
         const { locations_id, types_id, price } = body
         const numberPatern = /^[0-9]*$/
 
-        const checkIdRenter = `SELECT * FROM vehicles WHERE id = ${body.id} AND user_id = ${id}`
-        db.query(checkIdRenter, (err, result) => {
+        const checkIdRenter = `SELECT * FROM vehicles WHERE id = ? AND user_id = ${id}`
+        db.query(checkIdRenter, [params.id], (err, result) => {
             if (err) {
                 deleteImages(files, reject)
                 return reject(err)
@@ -307,8 +308,8 @@ const updateVehicles = (body, id, files) => {
 
                     const totalFiles = files.length
 
-                    const sqlQuery = `UPDATE vehicles SET ? WHERE id = ${body.id} AND user_id = ${id}`
-                    db.query(sqlQuery, body, (err, result) => {
+                    const sqlQuery = `UPDATE vehicles SET ? WHERE id = ? AND user_id = ${id}`
+                    db.query(sqlQuery, [body, params.id], (err, result) => {
                         if (err) {
                             if (files.length !== 0) {
                                 deleteImages(files, reject)
@@ -322,7 +323,7 @@ const updateVehicles = (body, id, files) => {
                         }
 
                         const deleteFiles = `DELETE FROM vehicles_img WHERE vehicle_id = ? LIMIT ?`
-                        db.query(deleteFiles, [body.id, totalFiles], (err) => {
+                        db.query(deleteFiles, [params.id, totalFiles], (err) => {
                             if (err) {
                                 if (files.length !== 0) {
                                     deleteImages(files, reject)
@@ -342,7 +343,7 @@ const updateVehicles = (body, id, files) => {
                             else {
                                 values += ` (?, ?) `
                             }
-                            imgArr.push(data.filename, body.id)
+                            imgArr.push(data.filename, params.id)
                             picImg.push(data.filename)
                         })
 

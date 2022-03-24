@@ -3,23 +3,24 @@ const historyModel = require('../models/history')
 
 // menambahkan data pembeli baru
 const postNewHistory = (req, res) => {
-    const { body } = req
+    const { body, params } = req
     const { id } = req.userInfo
     historyModel
-        .postNewHistory(body, id)
+        .postNewHistory(body, id, params)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result)
         })
         .catch(({ status, err }) => {
-            res.status(status).json({ msg: "Terjadi Error", err })
+            responseHelper.error(res, status, err)
         })
 }
 
 // melihat data
 const getHistory = (req, res) => {
-    const { query } = req;
+    const { query, userInfo } = req;
+    const { id } = userInfo
     historyModel
-        .getHistory(query)
+        .getHistory(id, query)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
@@ -27,33 +28,34 @@ const getHistory = (req, res) => {
         })
 }
 
-const getPopularVehicle = (req, res) => {
-    const { query } = req
+const patchHistoryById = (req, res) => {
+    const { body, userInfo, params } = req
+    const historyID = params.id
+    const userId = userInfo.id
     historyModel
-        .getPopularVehicle(query)
+        .patchHistoryByIdModel(body, historyID, userId)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result)
-        })
-        .catch(({ status, err }) => {
+        }).catch(({ status, err }) => {
             responseHelper.error(res, status, err)
         })
 }
 
 const delHistoryById = (req, res) => {
-    const { query } = req
-    const idHistory = query.id
+    const { body, userInfo } = req
+    const userId = userInfo.id
     historyModel
-        .delHistoryById(idHistory)
+        .delHistoryById(body, userId)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
             responseHelper.error(res, status, err)
-        });
+        })
 }
 
 module.exports = {
     postNewHistory,
     getHistory,
-    getPopularVehicle,
+    patchHistoryById,
     delHistoryById
 };

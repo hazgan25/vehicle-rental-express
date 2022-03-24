@@ -37,10 +37,10 @@ const vehicleDetail = (req, res) => {
 }
 
 const updateVehicles = (req, res) => {
-    let { body, userInfo, files } = req
+    let { body, userInfo, files, params } = req
     const { id } = userInfo
     vehicleModel
-        .updateVehicles(body, id, files)
+        .updateVehicles(body, id, files, params)
         .then(({ status, result }) => {
             responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
