@@ -1,6 +1,8 @@
 const db = require('../database/db')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const { sendPin } = require('../helpers/sendPin')
+
 
 const create = (body) => {
     return new Promise((resolve, reject) => {
@@ -87,10 +89,9 @@ const signIn = (body) => {
         const sqlQuery = `SELECT * FROM users WHERE email = ?`
 
         db.query(sqlQuery, [email], (err, result) => {
-
             if (err) return reject(({ status: 500, err }))
+            if (result.length === 0) return reject({ status: 401, err: "Email/Password Is Wrong!" })
             if (!emailPattern.test(email)) return reject(({ status: 400, err: 'Format Email Is Invalid' }))
-            if (result.length == 0) return reject({ status: 401, err: "Email/Password Is Wrong!" })
 
             bcrypt.compare(password, result[0].password, (err, isValid) => {
                 if (err) return reject({ status: 500, err })
@@ -117,6 +118,75 @@ const signIn = (body) => {
     })
 }
 
+const forgotPassModel = (email) => {
+    return new Promise((resolve, reject) => {
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
+
+        const checkEmail = 'SELECT * FROM users WHERE email = ?'
+        db.query(checkEmail, [email], (err, result) => {
+            if (err) return reject({ status: 500, err })
+            if (result.length === 0) return reject({ status: 401, err: "Email Not Found!" })
+            if (!emailPattern.test(email)) return reject(({ status: 400, err: 'Format Email Is Invalid' }))
+
+            const { name } = result[0]
+
+            const pinCode = (length) => {
+                const date = new Date()
+                const createUnix = date + email
+
+                let result = ''
+                let randomCode = createUnix
+                let randomCodeLength = randomCode.length
+
+                for (let i = 0; i < length; i++) {
+                    result += (Math.floor(Math.random() * randomCodeLength))
+                }
+                return result
+            }
+
+            const pin = pinCode(3)
+
+            const inserPinQuery = `UPDATE users SET pin_reset_pass = ? WHERE email = ?`
+
+            db.query(inserPinQuery, [pin, email], (err, result) => {
+                if (err) return reject({ status: 500, err })
+                sendPin(email, pin, name)
+
+                result = { msg: 'OTP are sending to your email, please check your email' }
+                resolve({ status: 200, result })
+            })
+        })
+    })
+}
+
+const resetPassModel = (pin, password) => {
+    return new Promise((resolve, reject) => {
+        const checkPin = `SELECT * FROM users WHERE pin_reset_pass = ? `
+        db.query(checkPin, [pin], (err, result) => {
+            if (err) return reject({ status: 500, err })
+            if (result.length === 0) return reject({ status: 400, err: 'Your pin is wrong!' })
+
+            bcrypt.hash(password, 10)
+                .then((hashedPassword) => {
+                    const sqlQuery = 'UPDATE users SET password = ?, pin_reset_pass = NULL WHERE pin_reset_pass = ?'
+                    db.query(sqlQuery, [hashedPassword, pin], (err) => {
+                        if (err) return reject({ status: 500, err })
+                        if (hashedPassword === '') return reject({ status: 400, err: 'Must be filled' })
+
+                        const delPinQuery = `UPDATE users SET pin_reset_pass = 123 WHERE password = ?`
+                        db.query(delPinQuery, [pin, hashedPassword], (err, result) => {
+                            if (err) return reject({ status: 500, err })
+
+                            result = { msg: 'Success reset password' }
+                            resolve({ status: 200, result })
+                        })
+                    })
+
+                })
+        })
+    })
+}
+
 const exit = (token) => {
     return new Promise((resolve, reject) => {
         const sqlQuery = `INSERT INTO blacklist_token (token) values (?)`
@@ -134,5 +204,7 @@ module.exports = {
     create,
     createNewAdmin,
     signIn,
+    forgotPassModel,
+    resetPassModel,
     exit
 }

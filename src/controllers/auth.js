@@ -39,6 +39,30 @@ const login = (req, res) => {
         })
 }
 
+const forgotPass = (req, res) => {
+    const { email } = req.body
+    authModel
+        .forgotPassModel(email)
+        .then(({ status, result }) => {
+            responseHelprer.success(res, status, result)
+        })
+        .catch(({ status, err }) => {
+            responseHelprer.error(res, status, err)
+        })
+}
+
+const resetPass = (req, res) => {
+    const { pin, password } = req.body
+    authModel
+        .resetPassModel(pin, password)
+        .then(({ status, result }) => {
+            responseHelprer.success(res, status, result)
+        })
+        .catch(({ status, err }) => {
+            responseHelprer.error(res, status, err)
+        })
+}
+
 const logout = (req, res) => {
     const token = req.header('x-access-token')
     const { id } = req.userInfo
@@ -56,5 +80,7 @@ module.exports = {
     register,
     registerAdmin,
     login,
+    forgotPass,
+    resetPass,
     logout
 }
