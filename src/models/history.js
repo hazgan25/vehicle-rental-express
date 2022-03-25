@@ -53,6 +53,7 @@ const getHistory = (id, query) => {
 
         let querySearch = ''
         let queryKeyword = ''
+        let queryFilter = ''
         let queryLimit = ''
         let queryPage = ''
         let queryBy = ''
@@ -68,9 +69,26 @@ const getHistory = (id, query) => {
             queryKeyword = `${query.search}`
         }
 
+        let filter = ''
+        if (query.filter) {
+            if (query.filter && query.filter.toLowerCase() === 'week') {
+                filter = `${query.filter}`
+                sqlQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) `
+            }
+            if (query.filter && query.filter.toLowerCase() === 'month') {
+                filter = `${query.filter}`
+                sqlQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) `
+            }
+            if (query.filter && query.filter.toLowerCase() === 'year') {
+                filter = `${query.filter}`
+                sqlQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) `
+            }
+            queryFilter = 'filter'
+        }
+
         const order = query.order
         let orderBy = ''
-        if (query.by && query.by.toLowerCase() == 'types') orderBy = 't.name'
+        if (query.by && query.by.toLowerCase() === 'types') orderBy = 't.name'
         if (query.by && query.by.toLowerCase() === 'data added') orderBy = 'h.create_at'
         if (query.by && query.by.toLowerCase() === 'vehicles') orderBy = 'v.name'
         if (order && orderBy) {
@@ -100,11 +118,26 @@ const getHistory = (id, query) => {
             JOIN vehicles v ON h.vehicles_id = v.id
             JOIN types t ON v.types_id = t.id
             JOIN status s ON h.status_id = s.id
+            WHERE users_id = ${id}
         `
 
         if (query.search) {
             keyword = `%${query.search}%`
-            countQuery += ` WHERE v.name LIKE "${keyword}" `
+            countQuery += ` AND v.name LIKE "${keyword}" `
+        }
+        if (query.filter) {
+            if (query.filter && query.filter.toLowerCase() === 'week') {
+                filter = `${query.filter}`
+                countQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) `
+            }
+            if (query.filter && query.filter.toLowerCase() === 'month') {
+                filter = `${query.filter}`
+                countQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) `
+            }
+            if (query.filter && query.filter.toLowerCase() === 'year') {
+                filter = `${query.filter}`
+                countQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) `
+            }
         }
 
         db.query(countQuery, (err, result) => {
@@ -116,15 +149,22 @@ const getHistory = (id, query) => {
             let linkResult = ''
             let links = `${process.env.URL_HOST}/history?`
             let link1 = `${querySearch}=${queryKeyword}`
-            let link2 = `${queryBy}=${query.by}&${queryOrder}=${query.order}`
+            let link2 = `${queryFilter}=${filter}`
+            let link3 = `${queryBy}=${query.by}&${queryOrder}=${query.order}`
 
             const bySearch = query.search
+            const byFilter = query.filter
             const byOrderBy = order && orderBy
 
             if (bySearch) linkResult = links + link1
-            if (byOrderBy) linkResult = links + link2
+            if (byFilter) linkResult = links + link2
+            if (byOrderBy) linkResult = links + link3
 
-            if (bySearch && byOrderBy) linkResult = `${links}${link1}&${link2}`
+            if (bySearch && byFilter) linkResult = `${links}${link1}&${link2}`
+            if (byFilter && byOrderBy) linkResult = `${links}${link2}&${link3}`
+            if (bySearch && byOrderBy) linkResult = `${links}${link1}&${link3}`
+
+            if (bySearch && byFilter && byOrderBy) linkResult = `${links}${link1}&${link2}&${link3}`
 
             let linkNext = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page + 1}`
             let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
@@ -174,6 +214,7 @@ const getHistory = (id, query) => {
                         create_at: data.create_at,
                         update_at: data.update_at,
                         renter_time: moment(data.renter_time, 'YYYMMDD').fromNow()
+                        // renter_time: 
                     }
                     dataDays.push(result)
                 })
