@@ -234,10 +234,10 @@ const patchHistoryByIdModel = (body, historyID, userId) => {
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return reject({ status: 400, err: 'no your history data here' })
             const { status_id, quantity, vehicles_id } = result[0]
-            const timeStap = new Date()
+            const timeStamp = new Date()
 
-            if (status_id === 2) body = { ...body, status_id: 1, update_at: timeStap }
-            if (status_id === 1) body = { ...body, update_at: timeStap }
+            if (status_id === 2) body = { ...body, status_id: 1, update_at: timeStamp }
+            if (status_id === 1) body = { ...body, update_at: timeStamp }
 
 
             const sqlQuery = `UPDATE historys SET ? WHERE id = ${historyID} AND users_id = ${userId}`

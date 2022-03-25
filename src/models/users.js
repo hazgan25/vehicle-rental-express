@@ -33,12 +33,14 @@ const editUserData = (userInfo, body, file) => {
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
             if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
 
+            const timeStamp = new Date()
+
             const sqlQuery = `UPDATE users SET ? WHERE id = ${userInfo.id}`
-            if (file) body = { ...body, image: file.filename }
+            if (file) body = { ...body, image: file.filename, update_at: timeStamp }
 
-            if (!file) body = { ...body, }
+            if (!file) body = { ...body, update_at: timeStamp }
 
-            if (dob === '') body = { ...body, dob: null }
+            if (dob === '') body = { ...body, dob: null, update_at: timeStamp }
 
             db.query(sqlQuery, [body], (err, result) => {
                 if (err) return reject({ status: 500, err })

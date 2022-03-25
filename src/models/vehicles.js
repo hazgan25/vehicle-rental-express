@@ -307,6 +307,12 @@ const updateVehicles = (body, id, files, params) => {
                     if (result.length === 0) return resolve({ status: 400, result: { err: `Wrong Types` } })
 
                     const totalFiles = files.length
+                    const timeStamp = new Date()
+
+                    body = {
+                        ...body,
+                        update_at: timeStamp
+                    }
 
                     const sqlQuery = `UPDATE vehicles SET ? WHERE id = ? AND user_id = ${id}`
                     db.query(sqlQuery, [body, params.id], (err, result) => {
