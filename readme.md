@@ -67,7 +67,7 @@ To do the test, you can go through the Postman application, you can download it 
 
 ## 1 Clone Repository
 
-### Clone this repository by running the following code :
+### Clone this repository by running the following command :
 
 ```
 git clone https://github.com/Hazgn/vehicle-rental-express.git
