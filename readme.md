@@ -1,6 +1,6 @@
 # Vehicle Rental Backend (With Node.js) <img src='./assets/img/vehicleRentalIcon.png' height='50' align='center' />
 
-<div style="text-align:center;position:relative; bottom:43px">
+<div style="text-align:center;position:relative; bottom:43px" align="center">
 <img src='./assets/gif/vehicleRentalLoading.gif' width='auto' />
 
 [![express](https://img.shields.io/npm/v/express?label=express)](https://www.npmjs.com/package/express)
