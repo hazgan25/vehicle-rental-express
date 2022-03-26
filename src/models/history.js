@@ -1,5 +1,5 @@
 const moment = require('moment')
-const mysql = require('mysql');
+const mysql = require('mysql')
 const db = require('../database/db')
 
 // menambahkan data pembeli baru
@@ -331,4 +331,4 @@ module.exports = {
     getHistory,
     patchHistoryByIdModel,
     delHistoryById
-};
+}

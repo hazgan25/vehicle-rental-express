@@ -1,7 +1,6 @@
-const vehicleModel = require('../models/vehicles');
-const responseHelper = require('../helpers/sendResponse');
+const vehicleModel = require('../models/vehicles')
+const responseHelper = require('../helpers/sendResponse')
 
-// menambahkan kendaraan baru
 const addNewVehicle = (req, res) => {
     let { body, userInfo, files } = req
     const { id } = userInfo
@@ -48,7 +47,6 @@ const updateVehicles = (req, res) => {
         })
 }
 
-// menghapus data kendaraan byId
 const delVehicleById = (req, res) => {
     const { query, userInfo } = req
     const { id } = userInfo
@@ -60,7 +58,7 @@ const delVehicleById = (req, res) => {
             responseHelper.success(res, status, result)
         }).catch(({ status, err }) => {
             responseHelper.error(res, status, err)
-        });
+        })
 }
 
 module.exports = {
@@ -69,4 +67,4 @@ module.exports = {
     vehicleDetail,
     updateVehicles,
     delVehicleById
-};
+}

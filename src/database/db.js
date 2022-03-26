@@ -1,4 +1,3 @@
-// import/setup/koneksi mysql/database
 const mysql = require('mysql2')
 
 const db = mysql.createConnection({
@@ -8,5 +7,4 @@ const db = mysql.createConnection({
     database: process.env.DB,
 })
 
-// export database
-module.exports = db;
+module.exports = db

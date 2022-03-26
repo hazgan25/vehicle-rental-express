@@ -1,6 +1,6 @@
 // import express js & router dari express js
-const express = require('express');
-const mainRouter = express.Router();
+const express = require('express')
+const mainRouter = express.Router()
 
 // deklarasi router sub/import
 const wellcomeRouter = require('./wellcome')
@@ -20,10 +20,6 @@ mainRouter.use('/users', userRouter)
 mainRouter.use('/vehicles', vehicleRouter)
 mainRouter.use('/locations', locationRouter)
 mainRouter.use('/history', historyRouter)
-
-// mainRouter.post("/upload", upload.single("vehicles"), (req, res) => {
-//     res.status(200).json({ msg: "Success", url: req.file });
-// })
 
 // express.method(endpoint, heandler1/2, dsb)
 mainRouter.get("/", (require, response) => {

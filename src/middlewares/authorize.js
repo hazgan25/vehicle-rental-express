@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken")
-const db = require("../database/db")
+const jwt = require('jsonwebtoken')
+const db = require('../database/db')
 
 const checkToken = (req, res, next) => {
     const token = req.header('x-access-token')
@@ -20,7 +20,7 @@ const checkToken = (req, res, next) => {
 
 const checkAdmin = (req, res, next) => {
     const { roles_id } = req.userInfo
-    if (roles_id !== 1) return res.status(401).json({ msg: "Only Admin Access! (>_<)" })
+    if (roles_id !== 1) return res.status(401).json({ msg: 'Only Admin Access! (>_<)' })
     next()
 }
 
@@ -32,7 +32,7 @@ const checkUser = (req, res, next) => {
 
 const checkRenter = (req, res, next) => {
     const { roles_id } = req.userInfo
-    if (roles_id !== 3) return res.status(401).json({ msg: "Must Be a Renter First (-_-)" })
+    if (roles_id !== 3) return res.status(401).json({ msg: 'Must Be a Renter First (-_-)' })
     next()
 }
 

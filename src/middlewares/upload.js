@@ -4,14 +4,14 @@ const multer = require('multer')
 const uploadProfile = multer({
     storage: multer.diskStorage({
         destination: (req, res, cb) => {
-            cb(null, "./public/img/users")
+            cb(null, './public/img/users')
         },
         filename: (req, file, cb) => {
             cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`)
         }
     }),
     fileFilter: (req, file, cb) => {
-        if (file.mimetype === "image/jpg" || file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
+        if (file.mimetype === 'image/jpg' || file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') {
             cb(null, true)
         }
         else {
@@ -24,14 +24,14 @@ const uploadProfile = multer({
 const uploadVehicle = multer({
     storage: multer.diskStorage({
         destination: (req, res, cb) => {
-            cb(null, "./public/img/vehicles")
+            cb(null, './public/img/vehicles')
         },
         filename: (req, file, cb) => {
             cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`)
         }
     }),
     fileFilter: (req, file, cb) => {
-        if (file.mimetype === "image/jpg" || file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
+        if (file.mimetype === 'image/jpg' || file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') {
             cb(null, true)
         }
         else {
@@ -40,6 +40,5 @@ const uploadVehicle = multer({
     },
     limits: { fileSize: 1 * 1024 * 1724 } //1,7mb
 }).array('images', 3)
-// cek array
 
 module.exports = { uploadProfile, uploadVehicle }

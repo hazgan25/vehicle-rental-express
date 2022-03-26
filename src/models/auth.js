@@ -17,7 +17,7 @@ const create = (body) => {
             if (phone === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input phone, email, And password' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
             if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
-            if (result.length > 0) return reject({ status: 401, err: "Email is Already" })
+            if (result.length > 0) return reject({ status: 401, err: 'Email is Already' })
 
             const sqlQuery = `INSERT INTO users SET ?`
             bcrypt
@@ -55,7 +55,7 @@ const createNewAdmin = (body) => {
             if (phone === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input phone, email, And password' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
             if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
-            if (result.length > 0) return reject({ status: 401, err: "Email is Already" })
+            if (result.length > 0) return reject({ status: 401, err: 'Email is Already' })
 
             const sqlQuery = `INSERT INTO users SET ?`
             bcrypt
@@ -90,7 +90,7 @@ const signIn = (body) => {
 
         db.query(sqlQuery, [email], (err, result) => {
             if (err) return reject(({ status: 500, err }))
-            if (result.length === 0) return reject({ status: 401, err: "Email/Password Is Wrong!" })
+            if (result.length === 0) return reject({ status: 401, err: 'Email/Password Is Wrong!' })
             if (!emailPattern.test(email)) return reject(({ status: 400, err: 'Format Email Is Invalid' }))
 
             bcrypt.compare(password, result[0].password, (err, isValid) => {
@@ -125,7 +125,7 @@ const forgotPassModel = (email) => {
         const checkEmail = 'SELECT * FROM users WHERE email = ?'
         db.query(checkEmail, [email], (err, result) => {
             if (err) return reject({ status: 500, err })
-            if (result.length === 0) return reject({ status: 401, err: "Email Not Found!" })
+            if (result.length === 0) return reject({ status: 401, err: 'Email Not Found!' })
             if (!emailPattern.test(email)) return reject(({ status: 400, err: 'Format Email Is Invalid' }))
 
             const { name } = result[0]

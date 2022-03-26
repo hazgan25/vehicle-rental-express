@@ -58,11 +58,11 @@ const addNewVehicleModel = (body, files, id) => {
                     const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
 
                     db.query(imgQuery, imgArr, (err, result) => {
-                        console.log(imgQuery)
                         if (err) {
                             deleteImages(files, reject)
                             return reject(err)
                         }
+
                         resolve({ status: 200, result })
                     })
                 })
@@ -78,8 +78,7 @@ const listVehicleModels = (query) => {
         t.name AS "types", v.stock,
         (SELECT CAST(AVG(rating) AS DECIMAL(10,1)) FROM historys where Vehicles_id = v.id) AS rating
         , v.price, u.name AS "owner",
-        (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) AS image,
-        v.date_time AS 'date'
+        (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) AS image
         FROM vehicles v
         JOIN types t ON v.types_id = t.id
         JOIN users u ON v.user_id = u.id 
@@ -126,15 +125,15 @@ const listVehicleModels = (query) => {
             queryFilter = 'location'
         }
 
-        const order = query.order;
-        let orderBy = "";
+        const order = query.order
+        let orderBy = ""
         if (query.by && query.by.toLowerCase() == "vehicles") orderBy = "v.name"
         if (query.by && query.by.toLowerCase() == "type") orderBy = "t.name"
         if (query.by && query.by.toLowerCase() == "locations") orderBy = "l.name"
         if (query.by && query.by.toLowerCase() == "rating") orderBy = "rating"
         if (query.by && query.by.toLowerCase() == "id") orderBy = "v.id"
         if (order && orderBy) {
-            sqlQuery += " ORDER BY ? ?";
+            sqlQuery += " ORDER BY ? ? "
             statment.push(mysql.raw(orderBy), mysql.raw(order))
             queryBy = 'by'
             queryOrder = 'order'
@@ -392,7 +391,7 @@ const deleteImages = (files, reject) => {
     files.forEach((element) => {
         fs.unlink(`media/${element}`, (err) => {
             if (err) {
-                return reject(err);
+                return reject(err)
             }
         })
     })
@@ -404,4 +403,4 @@ module.exports = {
     vehicleDetailModel,
     updateVehicles,
     delVehicleById
-};
+}

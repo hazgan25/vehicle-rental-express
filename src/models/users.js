@@ -10,11 +10,11 @@ const userDataPersonal = (id) => {
         FROM users u
         JOIN genders g ON u.gender_id = g.id
         JOIN roles r ON u.roles_id = r.id
-        WHERE u.id = ?`;
+        WHERE u.id = ? `
 
         db.query(sqlQuery, id, (err, result) => {
-            if (err) return reject({ status: 500, err });
-            resolve({ status: 200, result });
+            if (err) return reject({ status: 500, err })
+            resolve({ status: 200, result })
         })
     })
 }

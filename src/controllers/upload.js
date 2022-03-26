@@ -10,7 +10,7 @@ const uploadHandleUsers = (req, res, next) => {
             console.log(err)
             return res.status(401).json({ msg: "Just JPG, PNG, JPEG formated" })
         }
-        next();
+        next()
     })
 }
 
@@ -22,9 +22,9 @@ const uploadHandlerVehicles = (req, res, next) => {
             console.log(err)
             return res.status(401).json({ msg: "Just JPG, PNG, JPEG formated" })
         }
-        next();
+        next()
     })
 }
 
 
-module.exports = { uploadHandleUsers, uploadHandlerVehicles };
+module.exports = { uploadHandleUsers, uploadHandlerVehicles }

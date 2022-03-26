@@ -109,7 +109,7 @@ const detailAllUserData = (query) => {
             const count = result[0].count
             const newCount = count - page
 
-            let linkResult = ``;
+            let linkResult = ``
             let links = `${process.env.URL_HOST}/admin/users?`
             let link1 = `${querySearch}=${queryKeyword}`
             let link2 = `${queryFilter}=${filter}`
@@ -179,7 +179,7 @@ const create = (body) => {
             if (err) return reject({ status: 500, err })
             if (name === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input name, email, And password' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
-            if (result.length > 0) return reject({ status: 401, err: "Email is Already" })
+            if (result.length > 0) return reject({ status: 401, err: 'Email is Already' })
 
             const sqlQuery = `INSERT INTO users SET ?`
             bcrypt

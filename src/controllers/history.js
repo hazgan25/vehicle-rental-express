@@ -17,7 +17,7 @@ const postNewHistory = (req, res) => {
 
 // melihat data
 const getHistory = (req, res) => {
-    const { query, userInfo } = req;
+    const { query, userInfo } = req
     const { id } = userInfo
     historyModel
         .getHistory(id, query)
@@ -58,4 +58,4 @@ module.exports = {
     getHistory,
     patchHistoryById,
     delHistoryById
-};
+}
