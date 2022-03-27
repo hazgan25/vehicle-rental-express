@@ -208,7 +208,7 @@ const listVehicleModels = (query) => {
             let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
 
             let meta = {
-                next: page > totalPage ? null : linkNext,
+                next: page >= totalPage ? null : linkNext,
                 prev: page == 1 || newCount < 0 ? null : linkPrev,
                 limit: limit,
                 page: page,
