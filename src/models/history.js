@@ -8,12 +8,13 @@ const postNewHistory = (body, id, params) => {
         const { date, quantity } = body
         const vehicleQuery = `SELECT stock, user_id, price FROM vehicles Where id  = ?`
         db.query(vehicleQuery, [params.id], (err, result) => {
-            const { stock, user_id, price } = result[0]
             if (err) return reject({ status: 500, err })
-            if (id === user_id) return resolve({ status: 400, result: { err: 'You are the owner of this vehicle' } })
             if (result.length === 0) return resolve({ status: 400, result: { err: 'vehicle not found' } })
             if (quantity === '') return resolve({ status: 400, result: { err: 'You Must Input quality' } })
+
+            const { stock, user_id, price } = result[0]
             if (!err && stock === 0) return reject({ status: 400, err: 'out of stock' })
+            if (id === user_id) return resolve({ status: 400, result: { err: 'You are the owner of this vehicle' } })
 
             body = {
                 ...body,
@@ -44,7 +45,7 @@ const getHistory = (id, query) => {
         let sqlQuery = `SELECT h.id, v.name, t.name AS "type", h.payment, h.quantity, s.name AS "status",
         (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) AS image,
         h.create_at, h.update_at,
-        (SELECT h.create_at WHERE users_id = ${id} LIMIT 1) AS "renter_time"
+        (SELECT create_at FROM historys WHERE vehicles_id = v.id LIMIT 1) AS "renter_time"
         FROM historys h
         JOIN vehicles v ON h.vehicles_id = v.id
         JOIN types t ON v.types_id = t.id
@@ -73,15 +74,15 @@ const getHistory = (id, query) => {
         if (query.filter) {
             if (query.filter && query.filter.toLowerCase() === 'week') {
                 filter = `${query.filter}`
-                sqlQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) `
+                sqlQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) `
             }
             if (query.filter && query.filter.toLowerCase() === 'month') {
                 filter = `${query.filter}`
-                sqlQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) `
+                sqlQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) `
             }
             if (query.filter && query.filter.toLowerCase() === 'year') {
                 filter = `${query.filter}`
-                sqlQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) `
+                sqlQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) `
             }
             queryFilter = 'filter'
         }
@@ -128,15 +129,15 @@ const getHistory = (id, query) => {
         if (query.filter) {
             if (query.filter && query.filter.toLowerCase() === 'week') {
                 filter = `${query.filter}`
-                countQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) `
+                countQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) `
             }
             if (query.filter && query.filter.toLowerCase() === 'month') {
                 filter = `${query.filter}`
-                countQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) `
+                countQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) `
             }
             if (query.filter && query.filter.toLowerCase() === 'year') {
                 filter = `${query.filter}`
-                countQuery += ` AND create_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) `
+                countQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) `
             }
         }
 
