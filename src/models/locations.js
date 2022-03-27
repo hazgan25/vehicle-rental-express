@@ -22,6 +22,16 @@ const addNewLocationModel = (body, id) => {
     })
 }
 
+const listLocationAllModel = () => {
+    return new Promise((resolve, reject) => {
+        const sqlQuery = 'SELECT * FROM locations'
+        db.query(sqlQuery, (err, result) => {
+            if (err) return reject({ status: 500, err })
+            resolve({ status: 200, result })
+        })
+    })
+}
+
 const listLocationByRenterModel = (id) => {
     return new Promise((resolve, reject) => {
         const sqlQuery = `SELECT * FROM locations WHERE user_id = ?`
@@ -50,6 +60,7 @@ const editNameLocationModel = (body, id) => {
 
 module.exports = {
     addNewLocationModel,
+    listLocationAllModel,
     listLocationByRenterModel,
     editNameLocationModel
 }

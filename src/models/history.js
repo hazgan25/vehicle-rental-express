@@ -145,6 +145,7 @@ const getHistory = (id, query) => {
 
             const count = result[0].count
             const newCount = count - page
+            const totalPage = Math.ceil(count / limit)
 
             let linkResult = ''
             let links = `${process.env.URL_HOST}/history?`
@@ -170,7 +171,7 @@ const getHistory = (id, query) => {
             let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
 
             let meta = {
-                next: newCount <= 0 ? null : linkNext,
+                next: page > totalPage ? null : linkNext,
                 prev: page === 1 || newCount < 0 ? null : linkPrev,
                 limit: limit,
                 page: page,

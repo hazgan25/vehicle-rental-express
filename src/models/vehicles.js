@@ -179,6 +179,7 @@ const listVehicleModels = (query) => {
 
             const count = result[0].count
             const newCount = count - page
+            const totalPage = Math.ceil(count / limit)
 
             let linkResult = ``
             let links = `${process.env.URL_HOST}/vehicles?`
@@ -207,11 +208,11 @@ const listVehicleModels = (query) => {
             let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
 
             let meta = {
-                next: newCount <= 0 ? null : linkNext,
+                next: page > totalPage ? null : linkNext,
                 prev: page == 1 || newCount < 0 ? null : linkPrev,
                 limit: limit,
                 page: page,
-                totalPage: Math.ceil(count / limit),
+                totalPage: totalPage,
                 pageRemaining:
                     page == 1 && newCount < 0 ? null :
                         count < limit ? null :
