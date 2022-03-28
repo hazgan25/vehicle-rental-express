@@ -84,47 +84,68 @@ const listVehicleModels = (query) => {
         JOIN users u ON v.user_id = u.id 
         JOIN locations l ON v.locations_id = l.id
         `
-
         const statment = []
 
+        // var seacrh
         let querySearch = ''
         let queryKeyword = ''
-        let queryFilter = ''
-        let queryLimit = ''
-        let queryPage = ''
+        // var filter
+        let queryFilterType = ''
+        let queryFilterLocation = ''
+        // orderby
         let queryBy = ''
         let queryOrder = ''
+        // limit & page
+        let queryLimit = ''
+        let queryPage = ''
 
+        // fitur search
         let keyword = ''
         if (query.search) {
             keyword = `%${query.search}%`
-            sqlQuery += ` WHERE v.name LIKE "${keyword}" OR l.name LIKE '${keyword}' `
+            sqlQuery += ` WHERE v.name LIKE '${keyword}' OR t.name LIKE ${keyword} OR l.name LIKE ${keyword} `
             querySearch = 'search'
             queryKeyword = `${query.search}`
         }
 
-        let filter = ''
+        // fitur filter
+        let filterType = ''
+        let filterLocation = ''
+        // solo
         if (query.type && !query.search && !query.location) {
-            filter = `${query.type}`
-            sqlQuery += ` WHERE t.id = "${filter}" `
-            queryFilter = 'type'
-        }
-        if (query.type && query.search) {
-            filter = `${query.type}`
-            sqlQuery += ` AND t.id = "${filter}" `
-            queryFilter = 'type'
+            filterType = `${query.type}`
+            queryFilterType = 'type'
+            sqlQuery += ` WHERE t.id = '${filterType}' `
         }
         if (query.location && !query.search && !query.type) {
-            filter = `${query.location}`
-            sqlQuery += ` WHERE l.id = "${filter}" `
-            queryFilter = 'location'
+            filterLocation = `${query.location}`
+            queryFilterLocation = 'location'
+            sqlQuery += ` WHERE l.id = '${filterLocation}' `
         }
-        if (query.location && query.search) {
-            filter = `${query.location}`
-            sqlQuery += ` AND l.id = "${filter}" `
-            queryFilter = 'location'
+        // duo
+        if (query.type && query.search && !query.location) {
+            filterType = `${query.type}`
+            queryFilterType = 'type'
+            sqlQuery += ` AND t.id = '${filterType}' `
+        }
+        if (query.location && query.search && !query.type) {
+            filterLocation = `${query.location}`
+            queryFilterLocation = 'location'
+            sqlQuery += ` AND l.id = '${filterLocation}' `
+        }
+        if (query.type && query.location && !query.search) {
+            filterType = `${query.type}`
+            filterLocation = `${query.location}`
+            sqlQuery += ` WHERE t.id = ${filterType} AND l.id = ${filterLocation} `
+        }
+        // trio
+        if (query.type && query.location && query.search) {
+            filterType = `${query.type}`
+            filterLocation = `${query.location}`
+            sqlQuery += ` AND t.id = ${filterType} AND l.id = ${filterLocation} `
         }
 
+        // fitur order by
         const order = query.order
         let orderBy = ""
         if (query.by && query.by.toLowerCase() == "vehicles") orderBy = "v.name"
@@ -139,6 +160,7 @@ const listVehicleModels = (query) => {
             queryOrder = 'order'
         }
 
+        // fitur limit page/offset - pagination
         const page = parseInt(query.page)
         const limit = parseInt(query.limit)
         if (query.limit && !query.page) {
@@ -165,13 +187,34 @@ const listVehicleModels = (query) => {
             keyword = `%${query.search}%`
             countQuery += ` WHERE v.name LIKE "${keyword}" OR l.name LIKE "${keyword}" `
         }
-        if (query.type && !query.search) {
-            filter = `${query.type}`
-            countQuery += ` WHERE t.id = '${filter}' `
+        // solo
+        if (query.type && !query.search && !query.location) {
+            filterType = `${query.type}`
+            queryFilterType = 'type'
+            countQuery += ` WHERE t.id = '${filterType}' `
         }
-        if (query.type && query.search) {
-            filter = `${query.type}`
-            countQuery += ` AND t.id = '${filter}' `
+        if (query.location && !query.search && !query.type) {
+            filterLocation = `${query.location}`
+            countQuery += ` WHERE l.id = '${filterLocation}' `
+        }
+        // duo
+        if (query.type && query.search && !query.location) {
+            filterType = `${query.type}`
+            countQuery += ` AND t.id = '${filterType}' `
+        }
+        if (query.location && query.search && !query.type) {
+            filterLocation = `${query.location}`
+            countQuery += ` AND l.id = '${filterLocation}' `
+        }
+        if (query.type && query.location && !query.search) {
+            filterType = `${query.type}`
+            countQuery += ` WHERE t.id = ${filterType} AND l.id = ${filterLocation} `
+        }
+        // trio
+        if (query.type && query.location && query.search) {
+            filterType = `${query.type}`
+            filterLocation = `${query.location}`
+            countQuery += ` AND t.id = ${filterType} AND l.id = ${filterLocation} `
         }
 
         db.query(countQuery, (err, result) => {
@@ -181,28 +224,31 @@ const listVehicleModels = (query) => {
             const newCount = count - page
             const totalPage = Math.ceil(count / limit)
 
-            let linkResult = ``
+            let linkResult = ''
             let links = `${process.env.URL_HOST}/vehicles?`
             let link1 = `${querySearch}=${queryKeyword}`
-            let link2 = `${queryFilter}=${filter}`
-            let link3 = `${queryBy}=${query.by}&${queryOrder}=${order}`
-
-            if (query.type && query.location) link2 = `type=${query.type}&location=${query.location}`
+            let link2 = `${queryFilterType}=${filterType}`
+            let link3 = `${queryFilterLocation}=${filterLocation}`
+            let link4 = `${queryBy}=${query.by}&${queryOrder}=${order}`
 
             const bySearch = query.search
-            const byFilter = query.type || query.location
-            const byOrderBy = order && orderBy
+            const byFilterType = query.type
+            const byFilterLocation = query.location
+            const byOrder = order && orderBy
 
             if (bySearch) linkResult = links + link1
-            if (byFilter) linkResult = links + link2
-            if (byOrderBy) linkResult = links + link3
+            if (byFilterType) linkResult = links + link2
+            if (byFilterLocation) linkResult = links + link3
+            if (byOrder) linkResult = links + link4
 
+            if (bySearch && byFilterType) linkResult = `${links}${link1}${link2}`
+            if (bySearch && byFilterLocation) linkResult = `${links}${link1}${link3}`
+            if (byFilterType && byFilterLocation) linkResult = `${links}${link2}${link3}`
+            if (bySearch && byOrder) linkResult = `${links}${link1}${link4}`
+            if (byFilterType && byOrder) linkResult = `${links}${link2}${link4}`
+            if (byFilterLocation && byOrder) linkResult = `${links}${link3}${link4}`
 
-            if (bySearch && byFilter) linkResult = `${links}${link1}&${link2}`
-            if (bySearch && byOrderBy) linkResult = `${links}${link1}&${link3}`
-            if (byFilter && byOrderBy) linkResult = `${links}${link2}&${link3}`
-
-            if (bySearch && byFilter && byOrderBy) linkResult = `${links}${link1}&${link2}&${link3}`
+            if (bySearch && byFilterType && byFilterLocation) linkResult = `${links}${link1}${link2}${link3}${link4}`
 
             let linkNext = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page + 1}`
             let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
@@ -244,6 +290,8 @@ const listVehicleModels = (query) => {
         })
     })
 }
+
+
 
 const vehicleDetailModel = (id) => {
     return new Promise((resolve, reject) => {
