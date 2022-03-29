@@ -19,7 +19,7 @@ server.listen(port, () => {
 
 // manggil router awal
 const corsOptions = {
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000', 'https://vehicle-rental-web.vercel.app'],
     allowedHeader: 'x-access-token',
     method: ['GET', 'POST', 'PATCH', 'DETELE', 'OPTIONS']
 };
