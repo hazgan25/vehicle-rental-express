@@ -8,6 +8,7 @@ const userRouter = require('./users')
 const vehicleRouter = require('./vehicles')
 const locationRouter = require('./locations')
 const historyRouter = require('./history')
+const testimonialRouter = require('./testimonial')
 const authRouter = require('./auth')
 const adminRouter = require('./admin')
 
@@ -20,6 +21,7 @@ mainRouter.use('/users', userRouter)
 mainRouter.use('/vehicles', vehicleRouter)
 mainRouter.use('/locations', locationRouter)
 mainRouter.use('/history', historyRouter)
+mainRouter.use('/testimonial', testimonialRouter)
 
 // express.method(endpoint, heandler1/2, dsb)
 mainRouter.get("/", (require, response) => {
