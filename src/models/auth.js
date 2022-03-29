@@ -90,12 +90,12 @@ const signIn = (body) => {
 
         db.query(sqlQuery, [email], (err, result) => {
             if (err) return reject(({ status: 500, err }))
-            if (result.length === 0) return reject({ status: 401, err: 'Email/Password Is Wrong!' })
             if (!emailPattern.test(email)) return reject(({ status: 400, err: 'Format Email Is Invalid' }))
+            if (result.length === 0) return reject({ status: 401, err: 'Email/Password Is Wrong!' })
 
             bcrypt.compare(password, result[0].password, (err, isValid) => {
                 if (err) return reject({ status: 500, err })
-                if (!isValid) return reject({ status: 401, err: 'Password Is Wrong!' })
+                if (!isValid) return reject({ status: 400, err: 'Email/Password Is Wrong!' })
 
                 const payload = {
                     id: result[0].id,
