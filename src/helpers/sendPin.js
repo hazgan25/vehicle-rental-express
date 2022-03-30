@@ -79,8 +79,8 @@ const sendPinForgotPass = (email, pin, name) => {
     })
 }
 
-const sendPinVerifyRegister = (email, pin) => {
-    const showName = email
+const sendPinVerifyRegister = (name, email, pin) => {
+    const showName = name === null || name === '' ? email : name
     return new Promise((resolve, reject) => {
         const msg = {
             from: process.env.EMAIL_ADMIN,

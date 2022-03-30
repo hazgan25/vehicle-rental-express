@@ -6,7 +6,7 @@ const { sendPinForgotPass, sendPinVerifyRegister } = require('../helpers/sendPin
 
 const create = (body) => {
     return new Promise((resolve, reject) => {
-        const { phone, email, password } = body
+        const { name, phone, email, password } = body
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
         const phonePattern = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/
 
@@ -14,9 +14,9 @@ const create = (body) => {
 
         db.query(checkEmail, [email], (err, result) => {
             if (err) return reject({ status: 500, err })
-            if (phone === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input phone, email, And password' })
+            if (email === '' || password === '') return reject({ status: 401, err: 'Need input email, And password' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
-            if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
+            if (!phonePattern.test(phone) && phone !== '') return reject({ status: 401, err: 'Format Number Phone Invalid' })
             if (!err && result.length > 0 && result[0].status === 'pending') return reject({ status: 400, err: 'you have registered with this email address, check your email for verification' })
             if (result.length > 0) return reject({ status: 401, err: 'Email is Already exist!' })
 
@@ -55,8 +55,8 @@ const create = (body) => {
                     db.query(sqlQuery, [bodyWithHashedPassword], (err, result) => {
                         if (err) return reject({ status: 500, err })
 
-                        sendPinVerifyRegister(email, pin)
-                        result = { msg: 'Registration Success, Please check your email for verification' }
+                        sendPinVerifyRegister(name, email, pin)
+                        result = { msg: 'Registration Success, Please check your email for verification', pin: pin }
                         resolve({ status: 200, result })
                     })
                 })
@@ -152,9 +152,9 @@ const signIn = (body) => {
                     issuer: process.env.ISSUER
                 }
                 jwt.sign(payload, process.env.SECRET_KEY, jwtOptions, (err, token) => {
-                    const { id } = result[0]
+                    const { id, status } = result[0]
                     if (err) reject({ status: 500, err })
-                    resolve({ status: 200, result: { id, token, msg: 'login successful' } })
+                    resolve({ status: 200, result: { id, token, msg: 'login successful', status } })
                 })
             })
         })
