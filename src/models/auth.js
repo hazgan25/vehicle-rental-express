@@ -1,7 +1,7 @@
 const db = require('../database/db')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { sendPin } = require('../helpers/sendPin')
+const { sendPinForgotPass, sendPinVerifyRegister } = require('../helpers/sendPin')
 
 
 const create = (body) => {
@@ -17,23 +17,46 @@ const create = (body) => {
             if (phone === '' || email === '' || password === '') return reject({ status: 401, err: 'Need input phone, email, And password' })
             if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
             if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
-            if (result.length > 0) return reject({ status: 401, err: 'Email is Already' })
+            if (!err && result.length > 0 && result[0].status === 'pending') return reject({ status: 400, err: 'you have registered with this email address, check your email for verification' })
+            if (result.length > 0) return reject({ status: 401, err: 'Email is Already exist!' })
 
             const sqlQuery = `INSERT INTO users SET ?`
             bcrypt
                 .hash(password, 10)
                 .then((hashedPassword) => {
+
+                    const pinCode = (length) => {
+                        const date = new Date()
+                        const createUnix = date + email
+
+                        let result = ''
+                        let randomCode = createUnix
+                        let randomCodeLength = randomCode.length
+
+                        for (let i = 0; i < length; i++) {
+                            result += (Math.floor(Math.random() * randomCodeLength))
+                        }
+                        return result
+                    }
+
+                    const pin = pinCode(3)
+
                     const bodyWithHashedPassword = {
                         ...body,
                         password: hashedPassword,
                         active_year: new Date().getFullYear(),
                         gender_id: 3,
-                        roles_id: 2
+                        roles_id: 2,
+                        pin_verify: pin,
+                        status: 'pending'
                     }
+
 
                     db.query(sqlQuery, [bodyWithHashedPassword], (err, result) => {
                         if (err) return reject({ status: 500, err })
-                        result = { msg: 'Registration Is Successful' }
+
+                        sendPinVerifyRegister(email, pin)
+                        result = { msg: 'Registration Success, Please check your email for verification' }
                         resolve({ status: 200, result })
                     })
                 })
@@ -80,6 +103,23 @@ const createNewAdmin = (body) => {
     })
 }
 
+const verifyPinModel = (pin) => {
+    return new Promise((resolve, reject) => {
+        const checkPinQuery = `SELECT * FROM users WHERE pin_verify = ?`
+        db.query(checkPinQuery, pin, (err, result) => {
+            if (err) return reject({ status: 500, err })
+            if (result.length === 0) return reject({ status: 400, err: 'Wrong Pin' })
+
+            const sqlQuery = 'UPDATE users SET pin_verify = NULL, status = "active" WHERE pin_verify = ?'
+            db.query(sqlQuery, pin, (err, result) => {
+                if (err) return reject({ status: 500, err })
+
+                result = { msg: 'your account has been successfully verified, please login again on the web or mobile application' }
+                resolve({ status: 200, result })
+            })
+        })
+    })
+}
 
 const signIn = (body) => {
     return new Promise((resolve, reject) => {
@@ -92,6 +132,9 @@ const signIn = (body) => {
             if (err) return reject(({ status: 500, err }))
             if (!emailPattern.test(email)) return reject(({ status: 400, err: 'Format Email Is Invalid' }))
             if (result.length === 0) return reject({ status: 401, err: 'Email/Password Is Wrong!' })
+
+            const { status } = result[0]
+            if (result.length > 0 && status === 'pending') return reject({ status: 400, err: 'your account has not been verified, please check your email for verification' })
 
             bcrypt.compare(password, result[0].password, (err, isValid) => {
                 if (err) return reject({ status: 500, err })
@@ -150,8 +193,8 @@ const forgotPassModel = (email) => {
 
             db.query(inserPinQuery, [pin, email], (err, result) => {
                 if (err) return reject({ status: 500, err })
-                sendPin(email, pin, name)
 
+                sendPinForgotPass(email, pin, name)
                 result = { msg: 'OTP are sending to your email, please check your email' }
                 resolve({ status: 200, result })
             })
@@ -203,6 +246,7 @@ const exit = (token) => {
 module.exports = {
     create,
     createNewAdmin,
+    verifyPinModel,
     signIn,
     forgotPassModel,
     resetPassModel,

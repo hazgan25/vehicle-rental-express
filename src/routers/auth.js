@@ -6,6 +6,7 @@ const { checkToken } = require('../middlewares/authorize')
 
 authRouter.post('/register', register, authController.register)
 authRouter.post('/register/admin', register, authController.registerAdmin)
+authRouter.get('/verify/:pin', authController.verifyPin)
 authRouter.post('/login', authController.login)
 authRouter.post('/forgot/password', authController.forgotPass)
 authRouter.post('/reset/password', authController.resetPass)

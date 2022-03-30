@@ -27,6 +27,18 @@ const registerAdmin = (req, res) => {
         })
 }
 
+const verifyPin = (req, res) => {
+    const { pin } = req.params
+    authModel
+        .verifyPinModel(pin)
+        .then(({ status, result }) => {
+            responseHelprer.success(res, status, result)
+        })
+        .catch(({ status, err }) => {
+            responseHelprer.error(res, status, err)
+        })
+}
+
 const login = (req, res) => {
     const { body } = req
     authModel
@@ -79,6 +91,7 @@ const logout = (req, res) => {
 module.exports = {
     register,
     registerAdmin,
+    verifyPin,
     login,
     forgotPass,
     resetPass,
