@@ -2,15 +2,8 @@ const db = require("../database/db")
 
 const listTestimonialModel = (query) => {
     return new Promise((resolve, reject) => {
-        let sqlQuery = `SELECT MIN(h.id) AS "id",
-                            u.name, u.image, u.email, r.name, 
-                            h.testimony, h.rating
-                            FROM historys h 
-                            JOIN users u ON h.users_id = u.id
-                            JOIN roles r ON u.roles_id = r.id
-                            WHERE status_id = 1
-                            GROUP BY u.id
-                            order by h.update_at desc`
+        let sqlQuery = `SELECT distinct u.name, u.image, h.testimony, h.rating
+        FROM historys h JOIN users u ON h.users_id = u.id WHERE status_id = 1`
 
         let statment = []
         let queryLimit = ''
@@ -32,11 +25,11 @@ const listTestimonialModel = (query) => {
             statment.push(limit, offset)
         }
 
-        let countQuery = `SELECT count(*) AS "count" from historys WHERE status_id = 1 GROUP BY users_id`
+        let countQuery = `SELECT count(distinct users_id) AS "count" FROM historys WHERE status_id = 1`
         db.query(countQuery, (err, result) => {
             if (err) return reject({ status: 500, err })
 
-            let count = result.length
+            let count = result[0].count
             const newCount = count - page
             const totalPage = Math.ceil(count / limit)
 
