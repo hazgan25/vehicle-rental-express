@@ -48,14 +48,14 @@ const addNewVehicleModel = (body, files, id) => {
 
                     files.forEach((data, idx) => {
                         if (idx !== files.length - 1) {
-                            values += ` (?, ?), `
+                            values += ` ( ${id}, ?, ?), `
                         }
                         else {
-                            values += ` (?, ?) `
+                            values += ` ( ${id}, ?, ?) `
                         }
                         imgArr.push(data.filename, idVehicle)
                     })
-                    const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
+                    const imgQuery = `INSERT INTO vehicles_img (user_id, images, vehicle_id) ${values}`
 
                     db.query(imgQuery, imgArr, (err, result) => {
                         if (err) {
@@ -434,7 +434,6 @@ const delVehicleById = (idVehicle, id) => {
 
 
                 const deleteHistoryQuery = `DELETE FROM historys WHERE vehicles_id = ${idVehicle}`
-
                 db.query(deleteHistoryQuery, (err) => {
                     if (err) return reject({ status: 500, err })
 

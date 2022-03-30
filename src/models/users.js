@@ -101,18 +101,36 @@ const upgradeUsertoRenter = (id) => {
 
 const deleteAccountUser = (id, token) => {
     return new Promise((resolve, reject) => {
-        const sqlQuery = `DELETE FROM users WHERE id = ?`
-
-        db.query(sqlQuery, id, (err, result) => {
+        const deleteImgVehicleQuery = `DELETE FROM vehicles_img WHERE user_id = ?`
+        db.query(deleteImgVehicleQuery, id, (err) => {
             if (err) return reject({ status: 500, err })
-            result = { msg: 'You have successfully deleted your account' }
-            resolve({ status: 200, result })
 
-            const blacklistToken = `INSERT INTO blacklist_token (token) value (?)`
-            db.query(blacklistToken, [token], (err, result) => {
+            const deleteHistoryQuery = `DELETE FROM historys WHERE owner_id = ?`
+            db.query(deleteHistoryQuery, id, (err) => {
                 if (err) return reject({ status: 500, err })
-                result = { msg: 'You have successfully deleted your account' }
-                resolve({ status: 200, result })
+
+                const deleteLocationQuery = 'DELETE FROM locations WHERE user_id = ?'
+                db.query(deleteLocationQuery, id, (err) => {
+                    if (err) return reject({ status: 500, err })
+
+                    const deleteUserQuery = `DELETE FROM users WHERE id = ?`
+                    db.query(deleteUserQuery, id, (err) => {
+                        if (err) return reject({ status: 500, err })
+
+                        const deleteVehicleQuery = `DELETE FROM vehicles WHERE user_id = ?`
+                        db.query(deleteVehicleQuery, id, (err) => {
+                            if (err) return reject({ status: 500, err })
+
+                            const blackListTokenQuery = `INSERT INTO blacklist_token (token) value (?)`
+                            db.query(blackListTokenQuery, [token], (err, result) => {
+                                if (err) return reject({ status: 500, err })
+
+                                result = { msg: 'You have successfully deleted your account' }
+                                resolve({ status: 200, result })
+                            })
+                        })
+                    })
+                })
             })
         })
     })

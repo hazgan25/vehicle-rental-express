@@ -6,8 +6,9 @@ const db = require('../database/db')
 const postNewHistory = (body, id, params) => {
     return new Promise((resolve, reject) => {
         const { date, quantity } = body
-        const vehicleQuery = `SELECT stock, user_id, price FROM vehicles Where id  = ?`
+        const vehicleQuery = `SELECT * FROM vehicles Where id  = ?`
         db.query(vehicleQuery, [params.id], (err, result) => {
+            console.log(result)
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return resolve({ status: 400, result: { err: 'vehicle not found' } })
             if (quantity === '') return resolve({ status: 400, result: { err: 'You Must Input quality' } })
@@ -21,6 +22,7 @@ const postNewHistory = (body, id, params) => {
                 vehicles_id: params.id,
                 users_id: id,
                 payment: price * date * quantity,
+                owner_id: user_id,
                 status_id: 2
             }
             const totalStock = stock - quantity
