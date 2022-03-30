@@ -149,6 +149,7 @@ const listVehicleModels = (query) => {
         const order = query.order
         let orderBy = ""
         if (query.by && query.by.toLowerCase() == "vehicles") orderBy = "v.name"
+        if (query.by && query.by.toLowerCase() == "price") orderBy = "v.price"
         if (query.by && query.by.toLowerCase() == "type") orderBy = "t.name"
         if (query.by && query.by.toLowerCase() == "locations") orderBy = "l.name"
         if (query.by && query.by.toLowerCase() == "rating") orderBy = "rating"
@@ -427,10 +428,24 @@ const delVehicleById = (idVehicle, id) => {
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return reject({ status: 401, err: "You are not the owner of this vehicle" })
 
-            const sqlQuery = `DELETE FROM vehicles WHERE id = ${idVehicle} AND user_id = ${id}`
-            db.query(sqlQuery, (err, result) => {
+            const deleteImgQuery = `DELETE FROM vehicles_img WHERE vehicle_id = ${idVehicle}`
+            db.query(deleteImgQuery, (err) => {
                 if (err) return reject({ status: 500, err })
-                resolve({ status: 200, result })
+
+
+                const deleteHistoryQuery = `DELETE FROM historys WHERE vehicles_id = ${idVehicle}`
+
+                db.query(deleteHistoryQuery, (err) => {
+                    if (err) return reject({ status: 500, err })
+
+                    const sqlQuery = `DELETE FROM vehicles WHERE id = ${idVehicle} AND user_id = ${id}`
+                    db.query(sqlQuery, (err, result) => {
+                        if (err) return reject({ status: 500, err })
+
+                        result = { msg: 'success delete vehicle' }
+                        resolve({ status: 200, result })
+                    })
+                })
             })
         })
     })
