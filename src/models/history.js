@@ -14,7 +14,7 @@ const postNewHistory = (body, id, params) => {
             if (quantity === '') return resolve({ status: 400, result: { err: 'You Must Input quality' } })
 
             const { stock, user_id, price } = result[0]
-            if (!err && stock === 0) return reject({ status: 400, err: 'out of stock' })
+            if (!err && stock === 0 || quantity > stock) return reject({ status: 400, err: 'out of stock' })
             if (id === user_id) return resolve({ status: 400, result: { err: 'You are the owner of this vehicle' } })
 
             body = {

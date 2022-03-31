@@ -55,7 +55,7 @@ const sendPinForgotPass = (email, pin, name) => {
                 <body>
                     <header>
                         <h1>Hello</h1>
-                        <h3>$${showName}</h2>
+                        <h3>${showName}</h2>
                     </header>
                     <main>
                         <p>
