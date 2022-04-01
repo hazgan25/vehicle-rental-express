@@ -63,6 +63,7 @@ const addNewVehicleModel = (body, files, id) => {
                             return reject(err)
                         }
 
+                        result = { msg: `Success Add new Vehicle with name ${body.name}` }
                         resolve({ status: 200, result })
                     })
                 })

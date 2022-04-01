@@ -16,6 +16,8 @@ const addNewLocationModel = (body, id) => {
             }
             db.query(sqlQuery, body, (err, result) => {
                 if (err) return reject({ status: 500, err })
+
+                result = { msg: `successfully added new location with name ${name}` }
                 resolve({ status: 200, result })
             })
         })
@@ -75,9 +77,13 @@ const editNameLocationModel = (body, id) => {
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return resolve({ status: 401, result: { err: "You don't have a location here yet" } })
 
+            const { name } = result[0]
+
             const sqlQuery = `UPDATE locations SET ? WHERE id = ${body.id} AND user_id = ${id}`
-            db.query(sqlQuery, (err, result) => {
+            db.query(sqlQuery, body, (err, result) => {
                 if (err) return reject({ status: 500, err })
+
+                result = { msg: `location update was successful with previous ${name} to ${body.name}` }
                 resolve({ status: 200, result })
             })
         })

@@ -13,7 +13,7 @@ const postNewHistory = (body, id, params) => {
             if (result.length === 0) return resolve({ status: 400, result: { err: 'vehicle not found' } })
             if (quantity === '') return resolve({ status: 400, result: { err: 'You Must Input quality' } })
 
-            const { stock, user_id, price } = result[0]
+            const { name, stock, user_id, price } = result[0]
             if (!err && stock === 0 || quantity > stock) return reject({ status: 400, err: 'out of stock' })
             if (id === user_id) return resolve({ status: 400, result: { err: 'You are the owner of this vehicle' } })
 
@@ -35,6 +35,7 @@ const postNewHistory = (body, id, params) => {
                 db.query(sqlQuery, body, (err, result) => {
                     if (err) return reject({ status: 500, err })
 
+                    result = { msg: `managed to rent a ${name} for ${quantity} quantity and for ${date} day` }
                     resolve({ status: 200, result })
                 })
             })
@@ -237,7 +238,7 @@ const patchHistoryByIdModel = (body, historyID, userId) => {
         db.query(checkStatus, (err, result) => {
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return reject({ status: 400, err: 'no your history data here' })
-            const { status_id, quantity, vehicles_id } = result[0]
+            const { status_id, quantity, vehicles_id, rating } = result[0]
             const timeStamp = new Date()
 
             if (status_id === 2) body = { ...body, status_id: 1, update_at: timeStamp }
@@ -261,6 +262,13 @@ const patchHistoryByIdModel = (body, historyID, userId) => {
                     const updateStockQuery = `UPDATE vehicles set ? WHERE id = ${vehicles_id}`
                     db.query(updateStockQuery, updateStock, (err, result) => {
                         if (err) return reject({ status: 500, err })
+
+                        if (rating === null) {
+                            result = { msg: 'thank you for returning our vehicle' }
+                        } else {
+                            result = { msg: 'testimonial or rating update is successful' }
+                        }
+
                         resolve({ status: 200, result })
                     })
                 })
