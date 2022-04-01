@@ -23,6 +23,28 @@ const listLocationAll = (req, res) => {
         })
 }
 
+const locationById = (req, res) => {
+    const { id } = req.params
+    locationModel
+        .locationByIdModel(id)
+        .then(({ status, result }) => {
+            responseHelper.success(res, status, result)
+        }).catch((status, err) => {
+            responseHelper.error(res, status, err)
+        })
+}
+
+const locationByName = (req, res) => {
+    const { name } = req.params
+    locationModel
+        .locationByNameModel(name)
+        .then(({ status, result }) => {
+            responseHelper.success(res, status, result)
+        }).catch((status, err) => {
+            responseHelper.error(res, status, err)
+        })
+}
+
 const listLocationByRenter = (req, res) => {
     const { id } = req.userInfo
     locationModel
@@ -49,6 +71,8 @@ const editNameLocation = (req, res) => {
 module.exports = {
     addNewLocation,
     listLocationAll,
+    locationById,
+    locationByName,
     listLocationByRenter,
     editNameLocation
 }

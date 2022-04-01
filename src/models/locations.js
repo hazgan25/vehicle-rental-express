@@ -32,6 +32,32 @@ const listLocationAllModel = () => {
     })
 }
 
+const locationByIdModel = (id) => {
+    return new Promise((resolve, reject) => {
+        const sqlQuery = `SELECT * FROM locations WHERE id = ? `
+        db.query(sqlQuery, id, (err, result) => {
+            if (err) return reject({ status: 500, err })
+            if (result.length === 0) return resolve({ status: 400, result: 'location not found' })
+
+            resolve({ status: 200, result })
+        })
+    })
+}
+
+const locationByNameModel = (name) => {
+    return new Promise((resolve, reject) => {
+        const sqlQuery = `SELECT * FROM locations WHERE name = ? `
+        db.query(sqlQuery, name, (err, result) => {
+            if (err) return reject({ status: 500, err })
+            console.log(name)
+            console.log(err)
+            if (result.length === 0) return resolve({ status: 400, result: 'location not found' })
+
+            resolve({ status: 200, result })
+        })
+    })
+}
+
 const listLocationByRenterModel = (id) => {
     return new Promise((resolve, reject) => {
         const sqlQuery = `SELECT * FROM locations WHERE user_id = ?`
@@ -61,6 +87,8 @@ const editNameLocationModel = (body, id) => {
 module.exports = {
     addNewLocationModel,
     listLocationAllModel,
+    locationByIdModel,
+    locationByNameModel,
     listLocationByRenterModel,
     editNameLocationModel
 }
