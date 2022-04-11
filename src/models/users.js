@@ -105,8 +105,8 @@ const deleteAccountUser = (id, token) => {
         db.query(deleteImgVehicleQuery, id, (err) => {
             if (err) return reject({ status: 500, err })
 
-            const deleteHistoryQuery = `DELETE FROM historys WHERE users_id = ?`
-            db.query(deleteHistoryQuery, id, (err) => {
+            const deleteHistoryQuery = `DELETE FROM historys WHERE users_id = ${id} OR owner_id = ${id}`
+            db.query(deleteHistoryQuery, (err) => {
                 if (err) return reject({ status: 500, err })
 
                 const deleteLocationQuery = 'DELETE FROM locations WHERE user_id = ?'
