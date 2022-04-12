@@ -104,7 +104,7 @@ const listVehicleModels = (query) => {
         let keyword = ''
         if (query.search) {
             keyword = `%${query.search}%`
-            sqlQuery += ` WHERE v.name LIKE '${keyword}' OR t.name LIKE ${keyword} OR l.name LIKE ${keyword} `
+            sqlQuery += ` WHERE v.name LIKE '${keyword}' OR t.name LIKE '${keyword}' OR l.name LIKE '${keyword}' `
             querySearch = 'search'
             queryKeyword = `${query.search}`
         }
