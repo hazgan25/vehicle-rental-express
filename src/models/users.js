@@ -30,8 +30,8 @@ const editUserData = (userInfo, body, file) => {
         db.query(checkEmail, [email], (err, result) => {
             if (err) return reject({ status: 500, err })
             if (result.length > 0 && userInfo.email !== email) return reject({ status: 401, err: 'Email Is Already' })
-            if (!emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
-            if (!phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
+            if (email !== '' && !emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
+            if (phone !== '' && !phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
 
             const timeStamp = new Date()
 
