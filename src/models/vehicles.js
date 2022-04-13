@@ -17,6 +17,7 @@ const addNewVehicleModel = (body, files, id) => {
             if (name === '') return resolve({ status: 400, result: { err: 'Please Input Vehicle Name' } })
             if (description === '') return resolve({ status: 400, result: { err: 'Please Input description' } })
             if (price === '') return resolve({ status: 400, result: { err: 'Please Input Price' } })
+            if (types_id === '') return resolve({ status: 400, result: { err: 'Please Input Type Vehicle' } })
             if (!numberPatern.test(price)) return resolve({ status: 400, result: { err: 'Price Must Number' } })
             if (result.length === 0) return resolve({ status: 400, result: { err: `You haven't added a location` } })
 
