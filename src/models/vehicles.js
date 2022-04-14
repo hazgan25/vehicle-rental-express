@@ -244,14 +244,19 @@ const listVehicleModels = (query) => {
             if (byFilterLocation) linkResult = links + link3
             if (byOrder) linkResult = links + link4
 
-            if (bySearch && byFilterType) linkResult = `${links}${link1}${link2}`
-            if (bySearch && byFilterLocation) linkResult = `${links}${link1}${link3}`
+            if (bySearch && byFilterType) linkResult = `${links}${link1}&${link2}`
+            if (bySearch && byFilterLocation) linkResult = `${links}${link1}&${link3}`
             if (byFilterType && byFilterLocation) linkResult = `${links}${link2}${link3}`
-            if (bySearch && byOrder) linkResult = `${links}${link1}${link4}`
-            if (byFilterType && byOrder) linkResult = `${links}${link2}${link4}`
-            if (byFilterLocation && byOrder) linkResult = `${links}${link3}${link4}`
 
-            if (bySearch && byFilterType && byFilterLocation) linkResult = `${links}${link1}${link2}${link3}${link4}`
+            if (bySearch && byOrder) linkResult = `${links}${link1}&${link4}`
+            if (byFilterType && byOrder) linkResult = `${links}${link2}&${link4}`
+            if (byFilterLocation && byOrder) linkResult = `${links}${link3}&${link4}`
+
+            if (bySearch && byFilterType && byOrder) linkResult = `${links}${link1}&${link2}${link4}`
+            if (bySearch && byFilterLocation && byOrder) linkResult = `${links}${link1}&${link3}&${link4}`
+            if (byFilterType && byFilterLocation && byOrder) linkResult = `${links}${link2}&${link3}&${link4}`
+
+            if (bySearch && byFilterType && byFilterLocation & byOrder) linkResult = `${links}${link1}&${link2}&${link3}&${link4}`
 
             let linkNext = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page + 1}`
             let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
