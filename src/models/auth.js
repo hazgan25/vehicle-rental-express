@@ -148,7 +148,7 @@ const signIn = (body) => {
                     roles_id: result[0].roles_id
                 }
                 const jwtOptions = {
-                    expiresIn: '10h',
+                    expiresIn: '24h',
                     issuer: process.env.ISSUER
                 }
                 jwt.sign(payload, process.env.SECRET_KEY, jwtOptions, (err, token) => {
