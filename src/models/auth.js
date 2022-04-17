@@ -168,8 +168,8 @@ const forgotPassModel = (email) => {
         const checkEmail = 'SELECT * FROM users WHERE email = ?'
         db.query(checkEmail, [email], (err, result) => {
             if (err) return reject({ status: 500, err })
-            if (result.length === 0) return reject({ status: 401, err: 'Email Not Found!' })
             if (!emailPattern.test(email)) return reject(({ status: 400, err: 'Format Email Is Invalid' }))
+            if (result.length === 0) return reject({ status: 401, err: 'Email Not Found!' })
 
             const { name } = result[0]
 
@@ -207,7 +207,8 @@ const resetPassModel = (pin, password) => {
         const checkPin = `SELECT * FROM users WHERE pin_reset_pass = ? `
         db.query(checkPin, [pin], (err, result) => {
             if (err) return reject({ status: 500, err })
-            if (result.length === 0) return reject({ status: 400, err: 'Your pin is wrong!' })
+            if (pin === '' || password === '') return reject({ status: 400, err: 'All must be filled' })
+            if (result.length === 0) return reject({ status: 400, err: 'Your OTP is wrong!' })
 
             bcrypt.hash(password, 10)
                 .then((hashedPassword) => {
