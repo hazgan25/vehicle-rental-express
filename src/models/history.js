@@ -231,6 +231,198 @@ const getHistory = (id, query) => {
     })
 }
 
+const getHistoryRenterModel = (id, query) => {
+    return new Promise((resolve, reject) => {
+        let sqlQuery = `SELECT h.id, v.name, u.name AS "user", t.name AS "type", h.payment, h.quantity, s.name AS "status",
+        (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) AS image,
+        h.create_at, h.update_at,
+        (SELECT create_at FROM historys WHERE vehicles_id = v.id LIMIT 1) AS "renter_time"
+        FROM historys h
+        JOIN users u ON h.users_id = u.id
+        JOIN vehicles v ON h.vehicles_id = v.id
+        JOIN types t ON v.types_id = t.id
+        JOIN status s ON h.status_id = s.id
+        WHERE h.owner_id = ${id} `
+
+        let querySearch = ''
+        let queryKeyword = ''
+        let queryFilter = ''
+        let queryLimit = ''
+        let queryPage = ''
+        let queryBy = ''
+        let queryOrder = ''
+
+        const statment = []
+
+        let keyword = ''
+        if (query.search) {
+            keyword = `%${query.search}%`
+            sqlQuery += ` AND v.name LIKE "${keyword}" `
+            querySearch = 'search'
+            queryKeyword = `${query.search}`
+        }
+
+        let filter = ''
+        if (query.filter) {
+            if (query.filter && query.filter.toLowerCase() === 'week') {
+                filter = `${query.filter}`
+                sqlQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) `
+            }
+            if (query.filter && query.filter.toLowerCase() === 'month') {
+                filter = `${query.filter}`
+                sqlQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) `
+            }
+            if (query.filter && query.filter.toLowerCase() === 'year') {
+                filter = `${query.filter}`
+                sqlQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) `
+            }
+            queryFilter = 'filter'
+        }
+
+        const order = query.order
+        let orderBy = ''
+        if (query.by && query.by.toLowerCase() === 'types') orderBy = 't.name'
+        if (query.by && query.by.toLowerCase() === 'data added') orderBy = 'h.create_at'
+        if (query.by && query.by.toLowerCase() === 'vehicles') orderBy = 'v.name'
+        if (order && orderBy) {
+            sqlQuery += ' ORDER BY ? ? '
+            statment.push(mysql.raw(orderBy), mysql.raw(order))
+            queryBy = 'by'
+            queryOrder = 'order'
+        }
+
+        const page = parseInt(query.page)
+        const limit = parseInt(query.limit)
+        if (query.limit && !query.page) {
+            queryLimit = 'limit'
+            sqlQuery += ' LIMIT ? '
+            statment.push(limit)
+        }
+        if (query.limit && query.page) {
+            queryLimit = 'limit'
+            queryPage = 'page'
+
+            sqlQuery += ' LIMIT ? OFFSET ? '
+            const offset = (page - 1) * limit
+            statment.push(limit, offset)
+        }
+
+        let countQuery = `SELECT COUNT(*) as "count" FROM historys h
+            JOIN users u ON h.users_id = u.id
+            JOIN vehicles v ON h.vehicles_id = v.id
+            JOIN types t ON v.types_id = t.id
+            JOIN status s ON h.status_id = s.id
+            WHERE owner_id = ${id}
+        `
+
+        if (query.search) {
+            keyword = `%${query.search}%`
+            countQuery += ` AND v.name LIKE "${keyword}" `
+        }
+        if (query.filter) {
+            if (query.filter && query.filter.toLowerCase() === 'week') {
+                filter = `${query.filter}`
+                countQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) `
+            }
+            if (query.filter && query.filter.toLowerCase() === 'month') {
+                filter = `${query.filter}`
+                countQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) `
+            }
+            if (query.filter && query.filter.toLowerCase() === 'year') {
+                filter = `${query.filter}`
+                countQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) `
+            }
+        }
+
+        db.query(countQuery, (err, result) => {
+            if (err) return reject({ status: 500, err })
+
+            const count = result[0].count
+            const newCount = count - page
+            const totalPage = Math.ceil(count / limit)
+
+            let linkResult = ''
+            let links = `${process.env.URL_HOST}/history?`
+            let link1 = `${querySearch}=${queryKeyword}`
+            let link2 = `${queryFilter}=${filter}`
+            let link3 = `${queryBy}=${query.by}&${queryOrder}=${query.order}`
+
+            const bySearch = query.search
+            const byFilter = query.filter
+            const byOrderBy = order && orderBy
+
+            if (bySearch) linkResult = links + link1
+            if (byFilter) linkResult = links + link2
+            if (byOrderBy) linkResult = links + link3
+
+            if (bySearch && byFilter) linkResult = `${links}${link1}&${link2}`
+            if (byFilter && byOrderBy) linkResult = `${links}${link2}&${link3}`
+            if (bySearch && byOrderBy) linkResult = `${links}${link1}&${link3}`
+
+            if (bySearch && byFilter && byOrderBy) linkResult = `${links}${link1}&${link2}&${link3}`
+
+            let linkNext = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page + 1}`
+            let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
+
+            let meta = {
+                next: page >= totalPage ? null : linkNext,
+                prev: page === 1 || newCount < 0 ? null : linkPrev,
+                limit: limit,
+                page: page,
+                totalPage: Math.ceil(count / limit),
+                pageRemaining:
+                    page == 1 && newCount < 0 ? null :
+                        count < limit ? null :
+                            newCount <= 0 ? null :
+                                Math.ceil(newCount / limit),
+                totalData: newCount < 0 ? null : count,
+                totalRemainingData:
+                    page == 1 && newCount < 0 ? null :
+                        count < limit ? null :
+                            newCount <= 0 ? null :
+                                newCount
+            }
+
+            if (!query.page || !query.limit) {
+                meta = {
+                    next: null,
+                    prev: null,
+                    limit: null,
+                    page: null,
+                    totalData: newCount < 0 ? null : count
+                }
+            }
+
+            db.query(sqlQuery, statment, (err, result) => {
+                if (err) return reject({ status: 500, err })
+
+                let dataDays = []
+                result.forEach((data) => {
+                    result = {
+                        id: data.id,
+                        name: data.name,
+                        user: data.user === '' ? 'Someone' : data.user,
+                        type: data.type,
+                        payment: data.payment,
+                        quantity: data.quantity,
+                        status: data.status,
+                        image: data.image,
+                        create_at: data.create_at,
+                        update_at: data.update_at,
+                        renter_time: moment(data.renter_time, 'YYYMMDD').fromNow()
+                        // renter_time: 
+                    }
+                    dataDays.push(result)
+                })
+
+                resolve({ status: 200, result: { data: dataDays, meta } })
+            })
+
+        })
+    })
+
+}
+
 const patchHistoryByIdModel = (body, historyID, userId) => {
     return new Promise((resolve, reject) => {
         const checkStatus = `SELECT * FROM historys WHERE id = ${historyID} AND users_id = ${userId}`
@@ -338,9 +530,70 @@ const delHistoryById = (body, userId) => {
     })
 }
 
+const delHistoryByIdRenterModel = (body, userId) => {
+    return new Promise((resolve, reject) => {
+        const { id } = body
+
+        let valuesId = ''
+        let idArr = []
+
+        id.forEach((data, idx) => {
+            if (idx !== id.length - 1) {
+                valuesId += ` id = ? OR `
+            } else {
+                valuesId += ` id = ? `
+            }
+            idArr.push(data)
+        })
+
+        const checkHistorybyuser = `SELECT * FROM historys WHERE ${valuesId}`
+
+        db.query(checkHistorybyuser, idArr, (err, result) => {
+            if (err) return reject({ status: 500, err })
+            if (result.length === 0) return reject({ status: 400, err: 'oops your wrong id >_<' })
+
+            const { owner_id } = result[0]
+            if (userId !== owner_id) return reject({ status: 400, err: 'no your history data here' })
+
+
+            let valueDeteleId = ''
+            let idDeleteArr = []
+
+            id.forEach((data, idx) => {
+                if (idx !== id.length - 1) {
+                    valueDeteleId += ` ( ? ) , `
+                } else {
+                    valueDeteleId += ` ( ? ) `
+                }
+                idDeleteArr.push(data)
+            })
+
+            let statusErr = false
+
+            result.forEach((data) => {
+                if (data.status_id === 2) {
+                    statusErr = true
+                }
+            })
+
+            if (statusErr === true) return reject({ status: 400, err: 'vehicle renter has not been returned' })
+
+            const DeleteHistory = `DELETE FROM historys WHERE (id) IN (${valueDeteleId})`
+            db.query(DeleteHistory, idDeleteArr, (err, result) => {
+                if (err) return reject({ status: 500, err })
+
+                result = { msg: 'Success Deleted' }
+                resolve({ status: 200, result })
+            })
+        })
+    })
+}
+
 module.exports = {
     postNewHistory,
     getHistory,
+    getHistoryRenterModel,
     patchHistoryByIdModel,
-    delHistoryById
+    delHistoryById,
+    delHistoryByIdRenterModel
 }

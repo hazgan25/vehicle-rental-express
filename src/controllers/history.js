@@ -28,6 +28,18 @@ const getHistory = (req, res) => {
         })
 }
 
+const getHistoryRenter = (req, res) => {
+    const { query, userInfo } = req
+    const { id } = userInfo
+    historyModel
+        .getHistoryRenterModel(id, query)
+        .then(({ status, result }) => {
+            responseHelper.success(res, status, result)
+        }).catch(({ status, err }) => {
+            responseHelper.error(res, status, err)
+        })
+}
+
 const patchHistoryById = (req, res) => {
     const { body, userInfo, params } = req
     const historyID = params.id
@@ -53,9 +65,23 @@ const delHistoryById = (req, res) => {
         })
 }
 
+const delHistoryByIdRenter = (req, res) => {
+    const { body, userInfo } = req
+    const userId = userInfo.id
+    historyModel
+        .delHistoryByIdRenterModel(body, userId)
+        .then(({ status, result }) => {
+            responseHelper.success(res, status, result)
+        }).catch(({ status, err }) => {
+            responseHelper.error(res, status, err)
+        })
+}
+
 module.exports = {
     postNewHistory,
     getHistory,
+    getHistoryRenter,
     patchHistoryById,
-    delHistoryById
+    delHistoryById,
+    delHistoryByIdRenter
 }
