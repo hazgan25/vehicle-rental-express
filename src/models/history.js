@@ -476,7 +476,7 @@ const patchHistoryByIdModel = (body, historyID, userId) => {
             const timeStamp = new Date()
 
             if (body.rating === '' && rating === null) return reject({ status: 400, err: `must fill in the rating first` })
-            if (body.rating >= 5) return reject({ status: 400, err: 'rating must be 1 - 5' })
+            if (body.rating > 5) return reject({ status: 400, err: 'rating must be 1 - 5' })
             if (status_id === 2) return reject({ status: 400, err: `the vehicle has not been returned, can't give a rating and comment` })
 
             if (rating !== null && body.rating === '') body = { ...body, rating: rating, update_at: timeStamp }
