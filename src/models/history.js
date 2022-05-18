@@ -264,17 +264,13 @@ const getHistoryRenterModel = (id, query) => {
 
         let filter = ''
         if (query.filter) {
-            if (query.filter && query.filter.toLowerCase() === 'week') {
+            if (query.filter === '1' || query.filter === 1) {
                 filter = `${query.filter}`
-                sqlQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) `
+                sqlQuery += ` AND h.status_id = 1`
             }
-            if (query.filter && query.filter.toLowerCase() === 'month') {
+            if (query.filter === '2' || query.filter === 2) {
                 filter = `${query.filter}`
-                sqlQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) `
-            }
-            if (query.filter && query.filter.toLowerCase() === 'year') {
-                filter = `${query.filter}`
-                sqlQuery += ` AND h.create_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) `
+                sqlQuery += ` AND h.status_id = 2`
             }
             queryFilter = 'filter'
         }
@@ -423,21 +419,27 @@ const getHistoryRenterModel = (id, query) => {
 
 }
 
-const patchHistoryByIdModel = (body, historyID, userId) => {
+// return vehicle
+const putHistoryByIdModel = (body, historyID, userId) => {
     return new Promise((resolve, reject) => {
-        const checkStatus = `SELECT * FROM historys WHERE id = ${historyID} AND users_id = ${userId}`
+        const checkStatus = `SELECT * FROM historys WHERE id = ${historyID} AND owner_id = ${userId}`
 
         db.query(checkStatus, (err, result) => {
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return reject({ status: 400, err: 'no your history data here' })
-            const { status_id, quantity, vehicles_id, rating } = result[0]
+
+            const { quantity, vehicles_id, status_id } = result[0]
             const timeStamp = new Date()
 
-            if (status_id === 2) body = { ...body, status_id: 1, update_at: timeStamp }
-            if (status_id === 1) body = { ...body, update_at: timeStamp }
+            if (status_id === 1) return reject({ status: 400, err: 'error, status has been returned! if something goes wrong, contact customer service' })
 
+            body = {
+                ...body,
+                status_id: 1,
+                update_at: timeStamp
+            }
 
-            const sqlQuery = `UPDATE historys SET ? WHERE id = ${historyID} AND users_id = ${userId}`
+            const sqlQuery = `UPDATE historys SET ? WHERE id = ${historyID} AND owner_id = ${userId}`
             db.query(sqlQuery, [body], (err) => {
                 if (err) return reject({ status: 500, err })
 
@@ -446,26 +448,46 @@ const patchHistoryByIdModel = (body, historyID, userId) => {
                     if (err) return reject({ status: 500, err })
 
                     const { stock } = result[0]
-                    let updateStock = {}
-
-                    if (status_id === 2) updateStock = { stock: stock + quantity }
-                    if (status_id === 1) updateStock = { stock: stock }
+                    const updateStock = { stock: stock + quantity }
 
                     const updateStockQuery = `UPDATE vehicles set ? WHERE id = ${vehicles_id}`
                     db.query(updateStockQuery, updateStock, (err, result) => {
                         if (err) return reject({ status: 500, err })
 
-                        if (rating === null) {
-                            result = { msg: 'thank you for returning our vehicle' }
-                        } else {
-                            result = { msg: 'testimonial or rating update is successful' }
-                        }
-
+                        result = { msg: 'vehicle status has been successfully restored' }
                         resolve({ status: 200, result })
                     })
                 })
             })
+        })
+    })
+}
 
+// add or edit rating & testimony
+const patchHistoryByIdModel = (body, historyID, userId) => {
+    return new Promise((resolve, reject) => {
+        const checkStatus = `SELECT * FROM historys WHERE id = ${historyID} AND users_id = ${userId}`
+        console.log(typeof parseInt(body.rating) === 'number')
+        db.query(checkStatus, (err, result) => {
+            if (err) return reject({ status: 500, err })
+            if (result.length === 0) return reject({ status: 400, err: 'no your history data here' })
+
+            const { status_id, rating } = result[0]
+            const timeStamp = new Date()
+
+            if (body.rating === '' && rating === null) return reject({ status: 400, err: `must fill in the rating first` })
+            if (body.rating >= 5) return reject({ status: 400, err: 'rating must be 1 - 5' })
+            if (status_id === 2) return reject({ status: 400, err: `the vehicle has not been returned, can't give a rating and comment` })
+
+            if (rating !== null && body.rating === '') body = { ...body, rating: rating, update_at: timeStamp }
+            if (rating === null && body.rating !== '') body = { ...body, update_at: timeStamp }
+            const sqlQuery = `UPDATE historys SET ? WHERE id = ${historyID} AND users_id = ${userId}`
+            db.query(sqlQuery, [body], (err, result) => {
+                if (err) return reject({ status: 500, err })
+
+                result = { msg: 'testimonial or rating update is successful' }
+                resolve({ status: 200, result })
+            })
         })
     })
 }
@@ -488,14 +510,12 @@ const delHistoryById = (body, userId) => {
         })
 
         const checkHistorybyuser = `SELECT * FROM historys WHERE ${valuesId}`
-
         db.query(checkHistorybyuser, idArr, (err, result) => {
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return reject({ status: 400, err: 'oops your wrong id >_<' })
 
             const { users_id } = result[0]
             if (userId !== users_id) return reject({ status: 400, err: 'no your history data here' })
-
 
             let valueDeteleId = ''
             let idDeleteArr = []
@@ -518,7 +538,6 @@ const delHistoryById = (body, userId) => {
             })
 
             if (statusErr === true) return reject({ status: 400, err: 'Have not returned the vehicle' })
-
             const DeleteHistory = `DELETE FROM historys WHERE (id) IN (${valueDeteleId})`
             db.query(DeleteHistory, idDeleteArr, (err, result) => {
                 if (err) return reject({ status: 500, err })
@@ -547,7 +566,6 @@ const delHistoryByIdRenterModel = (body, userId) => {
         })
 
         const checkHistorybyuser = `SELECT * FROM historys WHERE ${valuesId}`
-
         db.query(checkHistorybyuser, idArr, (err, result) => {
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return reject({ status: 400, err: 'oops your wrong id >_<' })
@@ -593,6 +611,7 @@ module.exports = {
     postNewHistory,
     getHistory,
     getHistoryRenterModel,
+    putHistoryByIdModel,
     patchHistoryByIdModel,
     delHistoryById,
     delHistoryByIdRenterModel

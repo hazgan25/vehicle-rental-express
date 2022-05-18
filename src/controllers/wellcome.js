@@ -1,6 +1,6 @@
 const greeting = (req, res) => {
     res.status(200).json({
-        msg: "Maaf Sesi Anda Sudah Habis",
+        msg: "Congratulations the server is active. to try something add an endpoint already created! before trying to delete the wellcome endpoint",
     })
 }
 
