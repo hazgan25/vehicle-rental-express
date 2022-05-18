@@ -92,6 +92,7 @@ const getHistory = (id, query) => {
 
         const order = query.order
         let orderBy = ''
+        if (query.by && query.by.toLowerCase() === 'id') orderBy = 'h.id'
         if (query.by && query.by.toLowerCase() === 'types') orderBy = 't.name'
         if (query.by && query.by.toLowerCase() === 'data added') orderBy = 'h.create_at'
         if (query.by && query.by.toLowerCase() === 'vehicles') orderBy = 'v.name'
@@ -277,6 +278,7 @@ const getHistoryRenterModel = (id, query) => {
 
         const order = query.order
         let orderBy = ''
+        if (query.by && query.by.toLowerCase() === 'id') orderBy = 'h.id'
         if (query.by && query.by.toLowerCase() === 'types') orderBy = 't.name'
         if (query.by && query.by.toLowerCase() === 'data added') orderBy = 'h.create_at'
         if (query.by && query.by.toLowerCase() === 'vehicles') orderBy = 'v.name'
