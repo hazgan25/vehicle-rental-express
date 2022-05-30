@@ -86,6 +86,7 @@ const listVehicleModels = (query) => {
         JOIN users u ON v.user_id = u.id 
         JOIN locations l ON v.locations_id = l.id
         `
+
         const statment = []
 
         // var seacrh
@@ -188,17 +189,17 @@ const listVehicleModels = (query) => {
 
         if (query.search) {
             keyword = `%${query.search}%`
-            countQuery += ` WHERE v.name LIKE "${keyword}" OR l.name LIKE "${keyword}" `
+            countQuery += ` AND v.name LIKE "${keyword}" `
         }
         // solo
         if (query.type && !query.search && !query.location) {
             filterType = `${query.type}`
             queryFilterType = 'type'
-            countQuery += ` WHERE t.id = '${filterType}' `
+            countQuery += ` AND t.id = '${filterType}' `
         }
         if (query.location && !query.search && !query.type) {
             filterLocation = `${query.location}`
-            countQuery += ` WHERE l.id = '${filterLocation}' `
+            countQuery += ` AND l.id = '${filterLocation}' `
         }
         // duo
         if (query.type && query.search && !query.location) {
@@ -211,7 +212,7 @@ const listVehicleModels = (query) => {
         }
         if (query.type && query.location && !query.search) {
             filterType = `${query.type}`
-            countQuery += ` WHERE t.id = ${filterType} AND l.id = ${filterLocation} `
+            countQuery += ` AND t.id = ${filterType} AND l.id = ${filterLocation} `
         }
         // trio
         if (query.type && query.location && query.search) {
@@ -299,7 +300,216 @@ const listVehicleModels = (query) => {
     })
 }
 
+const listVehicleByRenterIdModel = (idRenter, query) => {
+    return new Promise((resolve, reject) => {
+        let sqlQuery = `SELECT v.id, v.name AS "vehicle", l.name AS "location",
+        t.name AS "types", v.stock,
+        (SELECT CAST(AVG(rating) AS DECIMAL(10,1)) FROM historys where Vehicles_id = v.id) AS rating
+        , v.price
+        FROM vehicles v
+        JOIN types t ON v.types_id = t.id
+        JOIN users u ON v.user_id = u.id 
+        JOIN locations l ON v.locations_id = l.id
+        WHERE v.user_id = ${idRenter}`
 
+        const statment = []
+
+        // var seacrh
+        let querySearch = ''
+        let queryKeyword = ''
+        // var filter
+        let queryFilterType = ''
+        let queryFilterLocation = ''
+        // orderby
+        let queryBy = ''
+        let queryOrder = ''
+        // limit & page
+        let queryLimit = ''
+        let queryPage = ''
+
+        // fitur search
+        let keyword = ''
+        if (query.search) {
+            keyword = `%${query.search}%`
+            sqlQuery += ` AND v.name LIKE "${keyword}" `
+            querySearch = 'search'
+            queryKeyword = `${query.search}`
+        }
+
+        // fitur filter
+        let filterType = ''
+        let filterLocation = ''
+        // solo
+        if (query.type && !query.search && !query.location) {
+            filterType = `${query.type}`
+            queryFilterType = 'type'
+            sqlQuery += ` AND t.id = '${filterType}' `
+        }
+        if (query.location && !query.search && !query.type) {
+            filterLocation = `${query.location}`
+            queryFilterLocation = 'location'
+            sqlQuery += ` AND l.id = '${filterLocation}' `
+        }
+        // duo
+        if (query.type && query.search && !query.location) {
+            filterType = `${query.type}`
+            queryFilterType = 'type'
+            sqlQuery += ` AND t.id = '${filterType}' `
+        }
+        if (query.location && query.search && !query.type) {
+            filterLocation = `${query.location}`
+            queryFilterLocation = 'location'
+            sqlQuery += ` AND l.id = '${filterLocation}' `
+        }
+        if (query.type && query.location && !query.search) {
+            filterType = `${query.type}`
+            filterLocation = `${query.location}`
+            sqlQuery += ` AND t.id = ${filterType} AND l.id = ${filterLocation} `
+        }
+        // trio
+        if (query.type && query.location && query.search) {
+            filterType = `${query.type}`
+            filterLocation = `${query.location}`
+            sqlQuery += ` AND t.id = ${filterType} AND l.id = ${filterLocation} `
+        }
+
+        // fitur order by
+        const order = query.order
+        let orderBy = ""
+        if (query.by && query.by.toLowerCase() == "vehicles") orderBy = "v.name"
+        if (query.by && query.by.toLowerCase() == "price") orderBy = "v.price"
+        if (query.by && query.by.toLowerCase() == "type") orderBy = "t.name"
+        if (query.by && query.by.toLowerCase() == "locations") orderBy = "l.name"
+        if (query.by && query.by.toLowerCase() == "rating") orderBy = "rating"
+        if (query.by && query.by.toLowerCase() == "id") orderBy = "v.id"
+        if (order && orderBy) {
+            sqlQuery += " ORDER BY ? ? "
+            statment.push(mysql.raw(orderBy), mysql.raw(order))
+            queryBy = 'by'
+            queryOrder = 'order'
+        }
+
+        // fitur limit page/offset - pagination
+        const page = parseInt(query.page)
+        const limit = parseInt(query.limit)
+        if (query.limit && !query.page) {
+            queryLimit = 'limit'
+            sqlQuery += ' LIMIT ? '
+            statment.push(limit)
+        }
+        if (query.limit && query.page) {
+            queryLimit = 'limit'
+            queryPage = 'page'
+
+            sqlQuery += ' LIMIT ? OFFSET ? '
+            const offset = (page - 1) * limit
+            statment.push(limit, offset)
+        }
+
+        let countQuery = `SELECT COUNT(*) AS "count" FROM vehicles v
+        JOIN types t ON v.types_id = t.id
+        JOIN users u ON v.user_id = u.id
+        JOIN locations l ON v.locations_id = l.id
+        WHERE v.user_id = ${idRenter}
+        `
+
+
+        if (query.search) {
+            keyword = `%${query.search}%`
+            countQuery += ` AND v.name LIKE "${keyword}" `
+        }
+        // solo
+        if (query.type && !query.search && !query.location) {
+            filterType = `${query.type}`
+            queryFilterType = 'type'
+            countQuery += ` AND t.id = '${filterType}' `
+        }
+        if (query.location && !query.search && !query.type) {
+            filterLocation = `${query.location}`
+            countQuery += ` AND l.id = '${filterLocation}' `
+        }
+        // duo
+        if (query.type && query.search && !query.location) {
+            filterType = `${query.type}`
+            countQuery += ` AND t.id = '${filterType}' `
+        }
+        if (query.location && query.search && !query.type) {
+            filterLocation = `${query.location}`
+            countQuery += ` AND l.id = '${filterLocation}' `
+        }
+        if (query.type && query.location && !query.search) {
+            filterType = `${query.type}`
+            countQuery += ` AND t.id = ${filterType} AND l.id = ${filterLocation} `
+        }
+        // trio
+        if (query.type && query.location && query.search) {
+            filterType = `${query.type}`
+            filterLocation = `${query.location}`
+            countQuery += ` AND t.id = ${filterType} AND l.id = ${filterLocation} `
+        }
+
+        db.query(countQuery, (err, result) => {
+            if (err) return reject({ status: 500, err })
+
+            const count = result[0].count
+            const newCount = count - page
+            const totalPage = Math.ceil(count / limit)
+
+            let linkResult = ''
+            let links = `${process.env.URL_HOST}/vehicles?`
+            let link1 = `${querySearch}=${queryKeyword}`
+            let link2 = `${queryFilterType}=${filterType}`
+            let link3 = `${queryFilterLocation}=${filterLocation}`
+            let link4 = `${queryBy}=${query.by}&${queryOrder}=${order}`
+
+
+            const bySearch = query.search
+            const byFilterType = query.type
+            const byFilterLocation = query.location
+            const byOrder = order && orderBy
+
+            if (bySearch && byFilterType && byFilterLocation & byOrder) linkResult = `${links}${link1}&${link2}&${link3}&${link4}`
+
+            let linkNext = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page + 1}`
+            let linkPrev = `${linkResult}&${queryLimit}=${limit}&${queryPage}=${page - 1}`
+
+            let meta = {
+                next: page >= totalPage ? null : linkNext,
+                prev: page == 1 || newCount < 0 ? null : linkPrev,
+                limit: limit,
+                page: page,
+                totalPage: totalPage,
+                pageRemaining:
+                    page == 1 && newCount < 0 ? null :
+                        count < limit ? null :
+                            newCount <= 0 ? null :
+                                Math.ceil(newCount / limit),
+                totalData: newCount < 0 ? null : count,
+                totalRemainingData:
+                    page == 1 && newCount < 0 ? null :
+                        count < limit ? null :
+                            newCount <= 0 ? null :
+                                newCount
+            }
+
+            if (!query.page || !query.limit) {
+                meta = {
+                    next: null,
+                    prev: null,
+                    limit: null,
+                    page: null,
+                    totalData: newCount < 0 ? null : count
+                }
+            }
+
+            db.query(sqlQuery, statment, (err, result) => {
+                if (err) return reject({ status: 500, err })
+
+                resolve({ status: 200, result: { data: result, meta } })
+            })
+        })
+    })
+}
 
 const vehicleDetailModel = (id) => {
     return new Promise((resolve, reject) => {
@@ -470,6 +680,7 @@ const deleteImages = (files, reject) => {
 module.exports = {
     addNewVehicleModel,
     listVehicleModels,
+    listVehicleByRenterIdModel,
     vehicleDetailModel,
     updateVehicles,
     delVehicleById

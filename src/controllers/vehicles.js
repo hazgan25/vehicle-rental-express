@@ -24,6 +24,18 @@ const listVehicle = (req, res) => {
         })
 }
 
+const listVehicleByRenterId = (req, res) => {
+    const { userInfo, query } = req
+    const idRenter = userInfo.id
+    vehicleModel
+        .listVehicleByRenterIdModel(idRenter, query)
+        .then(({ status, result }) => {
+            responseHelper.success(res, status, result)
+        }).catch(({ status, err }) => {
+            responseHelper.error(res, status, err)
+        })
+}
+
 const vehicleDetail = (req, res) => {
     const { id } = req.params
     vehicleModel
@@ -64,6 +76,7 @@ const delVehicleById = (req, res) => {
 module.exports = {
     addNewVehicle,
     listVehicle,
+    listVehicleByRenterId,
     vehicleDetail,
     updateVehicles,
     delVehicleById
