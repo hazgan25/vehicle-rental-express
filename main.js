@@ -17,7 +17,7 @@ server.listen(port, () => {
     console.log(`server sudah terkoneksi di port ${port}`)
 });
 
-// manggil router awal
+// first router
 const corsOptions = {
     origin: ['http://localhost:3000', 'https://vehicle-rental-react.vercel.app'],
     allowedHeader: 'x-access-token',
