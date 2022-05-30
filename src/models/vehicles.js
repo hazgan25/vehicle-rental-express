@@ -311,7 +311,7 @@ const vehicleDetailModel = (id) => {
             result.forEach((data) => {
                 images.push(data)
             })
-            const sqlQuery = `SELECT v.id, v.name AS "vehicle", l.name AS "location", locations_id,
+            const sqlQuery = `SELECT v.id, v.name AS "vehicle", v.description, l.name AS "location", locations_id,
             (SELECT CAST(AVG(rating) AS DECIMAL(10,1)) FROM historys where Vehicles_id = v.id) AS rating,
             stock, types_id, t.name AS "types", v.price, u.name AS "owner_name",  u.id AS "owner_id"
             FROM vehicles v
