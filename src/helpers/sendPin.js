@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer')
 
 const send = nodemailer.createTransport({
-    service: 'gmail',
+    service: 'hotmail',
     auth: {
         user: process.env.EMAIL_ADMIN,
         pass: process.env.PASS_ADMIN
