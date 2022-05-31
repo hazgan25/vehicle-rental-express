@@ -8,7 +8,6 @@ const postNewHistory = (body, id, params) => {
         const { date, quantity } = body
         const vehicleQuery = `SELECT * FROM vehicles Where id  = ?`
         db.query(vehicleQuery, [params.id], (err, result) => {
-            console.log(result)
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return resolve({ status: 400, result: { err: 'vehicle not found' } })
             if (quantity === '') return resolve({ status: 400, result: { err: 'You Must Input quality' } })
@@ -48,7 +47,8 @@ const getHistory = (id, query) => {
         let sqlQuery = `SELECT h.id, v.name, t.name AS "type", h.payment, h.quantity, s.name AS "status",
         (SELECT images FROM vehicles_img WHERE vehicle_id = v.id LIMIT 1) AS image,
         h.create_at, h.update_at,
-        (SELECT create_at FROM historys WHERE vehicles_id = v.id LIMIT 1) AS "renter_time"
+        (SELECT create_at FROM historys WHERE vehicles_id = v.id LIMIT 1) AS "renter_time",
+        h.rating, h.testimony
         FROM historys h
         JOIN vehicles v ON h.vehicles_id = v.id
         JOIN types t ON v.types_id = t.id
@@ -219,8 +219,9 @@ const getHistory = (id, query) => {
                         image: data.image,
                         create_at: data.create_at,
                         update_at: data.update_at,
-                        renter_time: moment(data.renter_time, 'YYYMMDD').fromNow()
-                        // renter_time: 
+                        renter_time: moment(data.renter_time, 'YYYMMDD').fromNow(),
+                        testimony: data.testimony,
+                        rating: data.rating
                     }
                     dataDays.push(result)
                 })
@@ -469,20 +470,23 @@ const putHistoryByIdModel = (body, historyID, userId) => {
 const patchHistoryByIdModel = (body, historyID, userId) => {
     return new Promise((resolve, reject) => {
         const checkStatus = `SELECT * FROM historys WHERE id = ${historyID} AND users_id = ${userId}`
-        console.log(typeof parseInt(body.rating) === 'number')
         db.query(checkStatus, (err, result) => {
             if (err) return reject({ status: 500, err })
             if (result.length === 0) return reject({ status: 400, err: 'no your history data here' })
 
-            const { status_id, rating } = result[0]
+            const { status_id, rating, testimony } = result[0]
             const timeStamp = new Date()
 
             if (body.rating === '' && rating === null) return reject({ status: 400, err: `must fill in the rating first` })
+            if (body.testimony === '' && rating === null) return reject({ status: 400, err: `must fill in the testimony` })
             if (body.rating > 5) return reject({ status: 400, err: 'rating must be 1 - 5' })
             if (status_id === 2) return reject({ status: 400, err: `the vehicle has not been returned, can't give a rating and comment` })
 
-            if (rating !== null && body.rating === '') body = { ...body, rating: rating, update_at: timeStamp }
-            if (rating === null && body.rating !== '') body = { ...body, update_at: timeStamp }
+            if (rating !== null && body.rating !== '' && body.testimony === '') body = { ...body, testimony: testimony, update_at: timeStamp }
+            if (rating !== null && body.testimony !== '' && body.rating === '') body = { ...body, rating: rating, update_at: timeStamp }
+            if (rating !== null && body.rating === '' && body.testimony === '') body = { ...body, update_at: timeStamp }
+            if (rating === null && body.rating !== '' && body.testimony !== '') body = { ...body, update_at: timeStamp }
+
             const sqlQuery = `UPDATE historys SET ? WHERE id = ${historyID} AND users_id = ${userId}`
             db.query(sqlQuery, [body], (err, result) => {
                 if (err) return reject({ status: 500, err })
