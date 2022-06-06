@@ -24,6 +24,7 @@ const editUserData = (userInfo, body, file) => {
         const { email, dob, phone } = body
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
         const phonePattern = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/
+        const datePattern = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
 
         const checkEmail = `SELECT * FROM users WHERE email = ?`
 
@@ -32,12 +33,12 @@ const editUserData = (userInfo, body, file) => {
             if (result.length > 0 && userInfo.email !== email) return reject({ status: 401, err: 'Email Is Already' })
             if (email !== '' && !emailPattern.test(email)) return reject({ status: 401, err: 'Format Email Invalid' })
             if (phone !== '' && !phonePattern.test(phone)) return reject({ status: 401, err: 'Format Number Phone Invalid' })
+            if (dob !== undefined && dob !== '' && !datePattern.test(dob)) return reject({ status: 401, err: 'Format Date Invalid' })
 
             const timeStamp = new Date()
 
             const sqlQuery = `UPDATE users SET ? WHERE id = ${userInfo.id}`
             if (file) body = { ...body, image: file.filename, update_at: timeStamp }
-
             if (!file) body = { ...body, update_at: timeStamp }
 
             if (dob === '') body = { ...body, dob: null, update_at: timeStamp }
