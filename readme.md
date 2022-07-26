@@ -139,6 +139,10 @@ Create an .env file name in the project folder, then fill in the variables like 
 <td>http://localhost:8000 or your ipv4/virtual host, example : http://192.168.56.258:8000</td>
 </tr>
 <tr>
+<td>URL_WEBSITE</td>
+<td>localhost frontend example : http://localhost:3000 "source: <a href="https://github.com/Hazgn/vehicle-rental-react">Vehicle Rental Frontend (With React Js)</a>"</td>
+</tr>
+<tr>
 <td>EMAIL_ADMIN</td>
 <td>Fill your real email account on gmail, for feature forgot password</td>
 </tr>
