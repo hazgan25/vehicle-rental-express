@@ -1,11 +1,14 @@
 const nodemailer = require('nodemailer')
 
 const send = nodemailer.createTransport({
-    service: 'hotmail',
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_ADMIN,
         pass: process.env.PASS_ADMIN
-    }
+    },
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: false
 })
 
 const sendPinForgotPass = (email, pin, name) => {
@@ -26,6 +29,9 @@ const sendPinForgotPass = (email, pin, name) => {
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Document</title>
                     <style>
+                    body{
+                        padding: 23px;
+                    }
                         header {
                             background-color: #FFCD61;
                             width: auto;
@@ -97,6 +103,9 @@ const sendPinVerifyRegister = (name, email, pin) => {
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Document</title>
                     <style>
+                    body{
+                        padding: 23px;
+                    }
                         header {
                             background-color: #FFCD61;
                             width: auto;
@@ -121,17 +130,17 @@ const sendPinVerifyRegister = (name, email, pin) => {
                     }
                         button{
                             font-style: normal;
-    font-weight: 900;
-    font-size: 24px;
-    line-height: 33px;
+                            font-weight: 900;
+                            font-size: 24px;
+                            line-height: 33px;
 
-    color: #FFCD61;
-    background: #393939;
-    box-shadow: 0px 0px 20px rgba(218, 218, 218, 0.25);
-    border-radius: 10px;
-    border-radius: 10px;
-    width: 100%;
-    height: 42px;
+                            color: #FFCD61;
+                            background: #393939;
+                            box-shadow: 0px 0px 20px rgba(218, 218, 218, 0.25);
+                            border-radius: 10px;
+                            border-radius: 10px;
+                            width: 100%;
+                            height: 42px;
                         }
                     </style>
                 </head>
@@ -144,10 +153,10 @@ const sendPinVerifyRegister = (name, email, pin) => {
                     <main>
                         <p>
                         Hi ${showName},
-Thanks for register and welcome to the Vehicle Rental!
+                        Thanks for register and welcome to the Vehicle Rental!
 
-Your account has been successfully added and you can now login to our web or app mobile and start exploring.
-<a href='${process.env.URL_WEBSITE}/auth/verify/${pin}'>Click here</a> to verify your Email.
+                        Your account has been successfully added and you can now login to our web or app mobile and start exploring.
+                        <a href='${process.env.URL_WEBSITE}/auth/verify/${pin}'>Click here</a> to verify your Email.
                         </p>
                     </main>
 
