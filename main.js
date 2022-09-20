@@ -19,7 +19,7 @@ server.listen(port, () => {
 
 // first router
 const corsOptions = {
-    origin: ['http://localhost:3000', 'https://vehicle-rental-react.vercel.app'],
+    origin: ['http://localhost:3000', 'http://localhost:8080', 'https://vehicle-rental-react.vercel.app'],
     allowedHeader: 'x-access-token',
     method: ['GET', 'POST', 'PATCH', 'DETELE', 'OPTIONS']
 };

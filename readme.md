@@ -70,7 +70,7 @@ To do the test, you can go through the Postman application, you can download it 
 ### Clone this repository by running the following command :
 
 ```
-git clone https://github.com/Hazgn/vehicle-rental-express.git
+git clone <this repo url>
 ```
 
 ## 2 Install dependencies Package
@@ -94,7 +94,7 @@ npm i
 if you have downloaded and installed MySQL you can download the SQL file here : <a href="https://onedrive.live.com/?authkey=%21AFFw3XyNUlEVlwo&cid=0E1E12EDC9AC577C&id=E1E12EDC9AC577C%21404680&parId=E1E12EDC9AC577C%21404679&o=OneUp">vehicle-rental.sql</a> 
 <p>import files in your localhost database</p>
 <li>Setups Postman</li>
-if you have downloaded and installed Postman you can download the collection file here : <a href="https://1drv.ms/u/s!AnxXrMntEh4OmNlKcPSAKE1ECmjo0w?e=Pu2fel">vehicle-rental.postman_collection</a>
+if you have downloaded and installed Postman you can look the Documentation file here : <a href="https://documenter.getpostman.com/view/18051667/2s7Yzzo5sp">vehicle-rental.postman_collection</a>
 <p>Setups Environment : Create Environment from postman, fill in variable and value</p>
 <table border=2>
 <tr>
