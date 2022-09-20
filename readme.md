@@ -94,7 +94,7 @@ npm i
 if you have downloaded and installed MySQL you can download the SQL file here : <a href="https://onedrive.live.com/?authkey=%21AFFw3XyNUlEVlwo&cid=0E1E12EDC9AC577C&id=E1E12EDC9AC577C%21404680&parId=E1E12EDC9AC577C%21404679&o=OneUp">vehicle-rental.sql</a> 
 <p>import files in your localhost database</p>
 <li>Setups Postman</li>
-if you have downloaded and installed Postman you can look the Documentation file here : <a href="https://documenter.getpostman.com/view/18051667/2s7Yzzo5sp">vehicle-rental.postman_collection</a>
+if you have downloaded and installed Postman you can look the Documentation file here : <a href="https://documenter.getpostman.com/view/18051667/2s7Yzzo5sp">vehicle-rental postman Documentation</a>
 <p>Setups Environment : Create Environment from postman, fill in variable and value</p>
 <table border=2>
 <tr>
