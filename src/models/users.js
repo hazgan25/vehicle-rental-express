@@ -1,6 +1,7 @@
 // const mysql = require('mysql')
 const db = require('../database/db')
 const bcrypt = require('bcrypt')
+const fs = require('fs')
 
 const userDataPersonal = (id) => {
     return new Promise((resolve, reject) => {
@@ -36,6 +37,12 @@ const editUserData = (userInfo, body, file) => {
             if (dob !== undefined && dob !== '' && !datePattern.test(dob)) return reject({ status: 401, err: 'Format Date Invalid' })
 
             const timeStamp = new Date()
+
+            if (result[0].image) {
+                fs.unlink(`public/img/users/${result[0].image}`, (err) => {
+                    console.log(err)
+                })
+            }
 
             const sqlQuery = `UPDATE users SET ? WHERE id = ${userInfo.id}`
             if (file) body = { ...body, image: file.filename, update_at: timeStamp }

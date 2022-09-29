@@ -2,11 +2,14 @@
   "name": "vehicle-rental",
   "version": "1.0.0",
   "description": "Tugas Week 3 ke 1 - Begineer Backend (Arkademy/Fazztrack)",
-  "main": "main.js",
+  "main": "index.js",
+  "engines": {
+    "node": "14.x"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node main",
-    "dev": "nodemon main"
+    "start": "node index",
+    "dev": "nodemon index"
   },
   "repository": {
     "type": "git",

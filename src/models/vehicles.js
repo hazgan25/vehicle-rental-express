@@ -10,7 +10,7 @@ const addNewVehicleModel = (body, files, id) => {
 
         db.query(checkLocation, [locations_id], (err, result) => {
             if (err) {
-                deleteImages(files, reject)
+                deleteImages(files)
                 return reject(err)
             }
 
@@ -24,7 +24,7 @@ const addNewVehicleModel = (body, files, id) => {
             const checkType = `SELECT * FROM types WHERE id = ?`
             db.query(checkType, [types_id], (err, result) => {
                 if (err) {
-                    deleteImages(files, reject)
+                    deleteImages(files)
                     return reject(err)
                 }
 
@@ -39,7 +39,7 @@ const addNewVehicleModel = (body, files, id) => {
                 const sqlQuery = `INSERT INTO vehicles SET ?`
                 db.query(sqlQuery, body, (err, result) => {
                     if (err) {
-                        deleteImages(files, reject)
+                        deleteImages(files)
                         return reject(err)
                     }
 
@@ -60,7 +60,7 @@ const addNewVehicleModel = (body, files, id) => {
 
                     db.query(imgQuery, imgArr, (err, result) => {
                         if (err) {
-                            deleteImages(files, reject)
+                            deleteImages(files)
                             return reject(err)
                         }
 
@@ -540,7 +540,7 @@ const vehicleDetailModel = (id) => {
     })
 }
 
-// update vehicles PUT
+// update vehicles Patch
 const updateVehicles = (body, id, files, params) => {
     return new Promise((resolve, reject) => {
         const { locations_id, types_id, price } = body
@@ -549,17 +549,19 @@ const updateVehicles = (body, id, files, params) => {
         const checkIdRenter = `SELECT * FROM vehicles WHERE id = ? AND user_id = ${id}`
         db.query(checkIdRenter, [params.id], (err, result) => {
             if (err) {
-                deleteImages(files, reject)
+                deleteImages(files)
                 return reject(err)
             }
+
             if (result.length === 0) return resolve({ status: 400, result: { err: `You are not the owner of this vehicle` } })
             if (price === '') return resolve({ status: 400, result: { err: 'Please Input Price' } })
             if (!numberPatern.test(price)) return resolve({ status: 400, result: { err: 'Wrong format price' } })
 
             const checkLocation = `SELECT * FROM locations WHERE id = ?`
+
             db.query(checkLocation, [locations_id], (err, result) => {
                 if (err) {
-                    deleteImages(files, reject)
+                    deleteImages(files)
                     return reject(err)
                 }
                 if (result.length === 0) return resolve({ status: 400, result: { err: `You haven't created a location id yet` } })
@@ -567,7 +569,7 @@ const updateVehicles = (body, id, files, params) => {
                 const checkType = `SELECT * FROM types WHERE id = ?`
                 db.query(checkType, [types_id], (err, result) => {
                     if (err) {
-                        deleteImages(files, reject)
+                        deleteImages(files)
                         return reject(err)
                     }
                     if (result.length === 0) return resolve({ status: 400, result: { err: `Wrong Types` } })
@@ -580,55 +582,76 @@ const updateVehicles = (body, id, files, params) => {
                         update_at: timeStamp
                     }
 
-                    const sqlQuery = `UPDATE vehicles SET ? WHERE id = ? AND user_id = ${id}`
-                    db.query(sqlQuery, [body, params.id], (err, result) => {
+                    const checkImage = 'SELECT * FROM vehicles_img where vehicle_id = ?'
+                    db.query(checkImage, [params.id], (err, result) => {
                         if (err) {
                             if (files.length !== 0) {
-                                deleteImages(files, reject)
+                                deleteImages(files)
                             }
                             return reject(err)
                         }
 
-                        result = { msg: 'Update Success', data: body }
-                        if (files.length === 0) {
-                            return resolve({ status: 200, result })
+                        const imgArr = result
+
+                        if (result.length > 0) {
+                            imgArr.forEach((data) => {
+                                fs.unlink(`public/img/vehicles/${data.images}`, (err) => {
+                                    if (err) {
+                                        console.log(err)
+                                    }
+                                })
+                            })
                         }
 
-                        const deleteFiles = `DELETE FROM vehicles_img WHERE vehicle_id = ? LIMIT ?`
-                        db.query(deleteFiles, [params.id, totalFiles], (err) => {
+                        const sqlQuery = `UPDATE vehicles SET ? WHERE id = ? AND user_id = ${id}`
+                        db.query(sqlQuery, [body, params.id], (err, result) => {
                             if (err) {
                                 if (files.length !== 0) {
-                                    deleteImages(files, reject)
+                                    deleteImages(files)
                                 }
                                 return reject(err)
                             }
-                        })
 
-                        let values = 'VALUES'
-                        const imgArr = []
-                        const picImg = []
-
-                        files.forEach((data, idx) => {
-                            if (idx !== files.length - 1) {
-                                values += ` (?, ?), `
+                            result = { msg: 'Update Success', data: body }
+                            if (files.length === 0) {
+                                return resolve({ status: 200, result })
                             }
-                            else {
-                                values += ` (?, ?) `
-                            }
-                            imgArr.push(data.filename, params.id)
-                            picImg.push(data.filename)
-                        })
 
-                        const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
-                        db.query(imgQuery, imgArr, (err, result) => {
-                            if (err) {
-                                if (files.length !== 0) {
-                                    deleteImages(files, reject)
+                            const deleteFiles = `DELETE FROM vehicles_img WHERE vehicle_id = ? LIMIT ?`
+                            db.query(deleteFiles, [params.id, totalFiles], (err) => {
+                                if (err) {
+                                    if (files.length !== 0) {
+                                        deleteImages(files)
+                                    }
+                                    return reject(err)
                                 }
-                            }
-                            result = { msg: 'Update is Success With Image', data: body, picImg }
-                            resolve({ status: 200, result })
+                            })
 
+                            let values = 'VALUES'
+                            const imgArr = []
+                            const picImg = []
+
+                            files.forEach((data, idx) => {
+                                if (idx !== files.length - 1) {
+                                    values += ` (?, ?), `
+                                }
+                                else {
+                                    values += ` (?, ?) `
+                                }
+                                imgArr.push(data.filename, params.id)
+                                picImg.push(data.filename)
+                            })
+
+                            const imgQuery = `INSERT INTO vehicles_img (images, vehicle_id) ${values}`
+                            db.query(imgQuery, imgArr, (err, result) => {
+                                if (err) {
+                                    if (files.length !== 0) {
+                                        deleteImages(files)
+                                    }
+                                }
+                                result = { msg: 'Update is Success With Image', data: body, picImg }
+                                resolve({ status: 200, result })
+                            })
                         })
                     })
                 })
@@ -667,11 +690,11 @@ const delVehicleById = (idVehicle, id) => {
     })
 }
 
-const deleteImages = (files, reject) => {
+const deleteImages = (files) => {
     files.forEach((element) => {
-        fs.unlink(`media/${element}`, (err) => {
+        fs.unlink(`public/img/vehicles/${element}`, (err) => {
             if (err) {
-                return reject(err)
+                console.log(err)
             }
         })
     })
