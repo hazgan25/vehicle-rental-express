@@ -1,9 +1,9 @@
-const express = require("express")
+const express = require("express");
 
 // import kontroller
-const wellcomeController = require("../controllers/wellcome")
-const wellcomeRouter = express.Router()
+const wellcomeController = require("../controllers/wellcome");
+const wellcomeRouter = express.Router();
 
-wellcomeRouter.get('/', wellcomeController.greeting)
+wellcomeRouter.get("/", wellcomeController.greeting);
 
-module.exports = wellcomeRouter
+module.exports = wellcomeRouter;

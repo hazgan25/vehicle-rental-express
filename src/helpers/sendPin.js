@@ -1,25 +1,24 @@
-const nodemailer = require('nodemailer')
+const nodemailer = require("nodemailer");
 
 const send = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_ADMIN,
-        pass: process.env.PASS_ADMIN
-    },
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: false
-})
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_ADMIN,
+    pass: process.env.PASS_ADMIN,
+  },
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: false,
+});
 
 const sendPinForgotPass = (email, pin, name) => {
-    const showName = name === null || name === '' ? email : name
-    return new Promise((resolve, reject) => {
-        const msg = {
-            from: process.env.EMAIL_ADMIN,
-            to: email,
-            subject: 'Forgot Password Vehicle Rental',
-            html:
-                `
+  const showName = name === null || name === "" ? email : name;
+  return new Promise((resolve, reject) => {
+    const msg = {
+      from: process.env.EMAIL_ADMIN,
+      to: email,
+      subject: "Forgot Password Vehicle Rental",
+      html: `
                 <!DOCTYPE html>
                 <html lang="en">
                 
@@ -74,26 +73,25 @@ const sendPinForgotPass = (email, pin, name) => {
                 </body>
                 
                 </html>
-                `
-        }
+                `,
+    };
 
-        send.sendMail(msg, (err, result) => {
-            if (err) return reject(err)
+    send.sendMail(msg, (err, result) => {
+      if (err) return reject(err);
 
-            resolve(result)
-        })
-    })
-}
+      resolve(result);
+    });
+  });
+};
 
 const sendPinVerifyRegister = (name, email, pin) => {
-    const showName = name === null || name === '' ? email : name
-    return new Promise((resolve, reject) => {
-        const msg = {
-            from: process.env.EMAIL_ADMIN,
-            to: email,
-            subject: 'Email Verification',
-            html:
-                `
+  const showName = name === null || name === "" ? email : name;
+  return new Promise((resolve, reject) => {
+    const msg = {
+      from: process.env.EMAIL_ADMIN,
+      to: email,
+      subject: "Email Verification",
+      html: `
             <!DOCTYPE html>
                 <html lang="en">
                 
@@ -162,16 +160,16 @@ const sendPinVerifyRegister = (name, email, pin) => {
 
                 </body>
                 
-                </html> `
-        }
-        send.sendMail(msg, (err, result) => {
-            if (err) return reject(err)
-            resolve(result)
-        })
-    })
-}
+                </html> `,
+    };
+    send.sendMail(msg, (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
 
 module.exports = {
-    sendPinVerifyRegister,
-    sendPinForgotPass
-}
+  sendPinVerifyRegister,
+  sendPinForgotPass,
+};

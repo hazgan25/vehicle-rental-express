@@ -1,7 +1,7 @@
-const express = require('express')
-const testimonialRouter = express.Router()
-const testimonialController = require('../controllers/testimonial')
+const express = require("express");
+const testimonialRouter = express.Router();
+const testimonialController = require("../controllers/testimonial");
 
-testimonialRouter.get('/', testimonialController.listTestimonial)
+testimonialRouter.get("/", testimonialController.listTestimonial);
 
-module.exports = testimonialRouter
+module.exports = testimonialRouter;
